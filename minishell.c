@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdbool.h>
+#include "proto.h"
 
 
 /* Constants */ 
@@ -21,7 +22,6 @@
 #define LINELEN 1024
 
 /* Prototypes */
-char ** arg_parse (char *line);
 void processline (char **line);
 
 /* Shell main */
@@ -29,6 +29,7 @@ int main()
 {
     char   buffer [LINELEN];
     int    len;
+    int numOfArg = 0;
 
     while (1) {
 
@@ -44,7 +45,7 @@ int main()
             buffer[len-1] = 0;
         }
         
-        char **location = arg_parse(buffer);
+        char **location = arg_parse(buffer, &numOfArg);
         
         /* Run it ... */
         processline (location);
@@ -85,55 +86,6 @@ void processline (char **line)
     if (wait (&status) < 0) {
       perror ("wait");
     }
-}
-
-char ** arg_parse (char *line)
-{
-    int counter = 0;
-    bool inArg = false;
-    int len = strlen(line) + 1;
-    
-    for (int i = 0; i < len; i++) 
-    {
-        if (line[i] == ' ' || line[i] == 0)
-        {
-            if (inArg == true)
-            {
-                counter = counter + 1;
-                inArg = false;
-            }
-        }
-        else if (line[i] != ' ')
-        {
-            inArg = true;
-        }
-    }
-    counter = counter + 1;
-    
-    char ** ptrToStrArr = (char** ) malloc(sizeof (char*) * counter);
-    inArg = false;
-    int ptrToStrArrCounter = 0;
-    for (int i = 0; i < len; i++)
-    {
-       if (line[i] == ' ' || line[i] == 0)
-       {
-           line[i] = 0;
-           inArg = false;
-       }
-       else if (line[i] != ' ')
-       {
-           if (inArg == false)
-           {
-               ptrToStrArr[ptrToStrArrCounter] = &line[i];
-               ptrToStrArrCounter = ptrToStrArrCounter + 1;
-               inArg = true;
-           }
-       }
-    }
-    ptrToStrArr[ptrToStrArrCounter] = NULL;
-    
-    
-    return ptrToStrArr;
 }
 
 
