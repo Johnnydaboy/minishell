@@ -63,35 +63,61 @@ char ** arg_parse (char *line, int *argcp)
     }
     else
     {
-        perror("You can't have an odd number of quotes \n");
+        printf("You can't have an odd number of quotes \n");
+        return NULL;
     }        
     counter = counter + 1;
     *argcp = counter;
-    printf("You have this many arguments: %d\n", counter);
-    return NULL;    
+    printf("You have this many arguments: %d\n", counter);   
     
     char ** ptrToStrArr = (char** ) malloc(sizeof (char*) * counter);
     inArg = false;
+    inQuote = false;
     int ptrToStrArrCounter = 0;
-    for (int i = 0; i < len; i++)
+    char * ptr1 = line;
+    char * ptr2 = line;
+
+    while (*ptr2 != 0)
     {
-       if (line[i] == ' ' || line[i] == 0)
-       {
-           line[i] = 0;
-           inArg = false; 
-       }
-       else if (line[i] != ' ')
-       {
-           if (inArg == false)
-           {
-               ptrToStrArr[ptrToStrArrCounter] = &line[i];
-               ptrToStrArrCounter = ptrToStrArrCounter + 1;
-               inArg = true;
-           }
-       }
+        *ptr1 = *ptr2;
+        if (*ptr2 == '"')
+        {
+            if (inArg == false)
+            {
+                ptrToStrArr[ptrToStrArrCounter] = ptr1;
+                ptrToStrArrCounter++;
+                inArg = true;
+            }
+            ptr2++;
+            inQuote = !inQuote;
+        }
+        else
+        {
+            if (*ptr2 != ' ' && inArg == false)
+            {
+                ptrToStrArr[ptrToStrArrCounter] = ptr1;
+                ptrToStrArrCounter++;
+                inArg = true;
+            }
+            
+            else if (*ptr2 == ' ')
+            {
+                if (inQuote == false)
+                {
+                    *ptr1 = 0;
+                    inArg = false;
+                }
+            }
+            ptr1++;
+            ptr2++;
+        }
     }
+    *ptr1 = *ptr2;
     ptrToStrArr[ptrToStrArrCounter] = NULL;
-    
+    for(int g = 0; g < ptrToStrArrCounter; g++)
+    {
+        printf("Your char is: %s\n", ptrToStrArr[g]);
+    }
     
     return ptrToStrArr;
 }
