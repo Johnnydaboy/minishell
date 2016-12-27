@@ -68,7 +68,7 @@ char ** arg_parse (char *line, int *argcp)
     }        
     counter = counter + 1;
     *argcp = counter;
-    printf("You have this many arguments: %d\n", counter);   
+    //printf("You have this many arguments: %d\n", counter);   
     
     char ** ptrToStrArr = (char** ) malloc(sizeof (char*) * counter);
     inArg = false;
@@ -114,10 +114,10 @@ char ** arg_parse (char *line, int *argcp)
     }
     *ptr1 = *ptr2;
     ptrToStrArr[ptrToStrArrCounter] = NULL;
-    for(int g = 0; g < ptrToStrArrCounter; g++)
-    {
-        printf("Your char is: %s\n", ptrToStrArr[g]);
-    }
+    //for(int g = 0; g < ptrToStrArrCounter; g++)
+    //{
+    //    printf("Your char is: %s\n", ptrToStrArr[g]);
+    //}
     
     return ptrToStrArr;
 }

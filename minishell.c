@@ -46,9 +46,18 @@ int main()
         }
         
         char **location = arg_parse(buffer, &numOfArg);
-        
+
         /* Run it ... */
-        processline (location);
+        bool runProLine = builtInFunc(location);
+        
+        if (numOfArg != 1)
+        {
+            if (runProLine == false)
+            {
+                processline (location);
+                printf("It ran \n");
+            }
+        }
         
         free(location);
         
