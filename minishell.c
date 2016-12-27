@@ -16,7 +16,6 @@
 #include <stdbool.h>
 #include "proto.h"
 
-
 /* Constants */ 
 
 #define LINELEN 1024
