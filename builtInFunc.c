@@ -8,6 +8,9 @@
 #include <stdbool.h>
 #include "proto.h"
 
+void exitBuiltIn (char **line);
+void aechoBuiltIn (char **line);
+
 // This compares the string at line[0] to the built in function program name in my builtIns array
 // It has a return type of bool in order to make sure processline doesnt run
 bool builtInFunc (char **line)
