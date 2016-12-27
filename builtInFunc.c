@@ -8,6 +8,8 @@
 #include <stdbool.h>
 #include "proto.h"
 
+// This compares the string at line[0] to the built in function program name in my builtIns array
+// It has a return type of bool in order to make sure processline doesnt run
 bool builtInFunc (char **line)
 {
     int n = 2;
@@ -21,6 +23,8 @@ bool builtInFunc (char **line)
     
     for (int c = 0; c < n; c++)
     {
+        /* If it is built in since the index of the builtIns array and the function array are at identical
+        we can use the variable c in order to call the correct function pointer to call the function */
         if (strcmp(line[0], builtIns[c]) == 0 )
         {
             (*funcBuiltInArr[c])(&line[1]);
@@ -29,6 +33,8 @@ bool builtInFunc (char **line)
     }
     return false;
 }
+
+// This is the first built in command which exits the minishell with the value given or 0
 void exitBuiltIn (char **line)
 {
     int intStr;
@@ -46,11 +52,16 @@ void exitBuiltIn (char **line)
         exit(intStr);
     }
 }
+
+/* This is the second built in command which echo what every you type in and
+if you give -n it won't echo on a new line */
 void aechoBuiltIn (char **line)
 {
     int counter = 0;
     int counterb = 1;
     bool finish = false;
+    
+    // This is the implementation for the -n for the echo
     if (strcmp(line[0], "-n") == 0)
     {
         while (finish == false)
@@ -69,6 +80,8 @@ void aechoBuiltIn (char **line)
             }
         }
     }
+    
+    // This is the implementation for the standard of echo
     else 
     {
         while (finish == false)

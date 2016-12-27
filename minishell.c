@@ -45,20 +45,34 @@ int main()
             buffer[len-1] = 0;
         }
         
+        // Running arg_parse in order to return the arguments in a seperated string array format
         char **location = arg_parse(buffer, &numOfArg);
-
-        /* Run it ... */
-        bool runProLine = builtInFunc(location);
         
+        bool runProLine;
+        
+        /* Run it ... */
+        // Kinda uneccesary but check to make sure that the process won't run if nothing is given to arg_parse
+        if (numOfArg != 1)
+        {           
+            runProLine = builtInFunc(location);
+        }
+        else
+        {
+            runProLine = false;
+        }
+        
+        // This checks to make sure if there are no built in functions then it will call the library
+        // Also checks to make sure processline won't run if nothing was given to arg_parse
         if (numOfArg != 1)
         {
+            // This makes sure that processline doesn't run if a built in function was called
             if (runProLine == false)
             {
                 processline (location);
-                printf("It ran \n");
             }
         }
         
+        // Frees up the malloc'ed location by arg_parse
         free(location);
         
     }
@@ -70,7 +84,7 @@ int main()
     return 0; /* Also known as exit (0); */
 }
 
-
+// Runs a library program if a built in command wasn't called
 void processline (char **line)
 {
     pid_t  cpid;
