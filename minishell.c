@@ -27,8 +27,10 @@ void processline (char **line);
 int main()
 {
     char   buffer [LINELEN];
+    char   expandBuffer [LINELEN];
     int    len;
     int numOfArg = 0;
+    char ** location;
 
     while (1) {
 
@@ -44,8 +46,13 @@ int main()
             buffer[len-1] = 0;
         }
         
+        int successfulExpand = expand(buffer, expandBuffer, LINELEN);
+        
         // Running arg_parse in order to return the arguments in a seperated string array format
-        char **location = arg_parse(buffer, &numOfArg);
+        if (successfulExpand != 0)
+        {
+            location = arg_parse(expandBuffer, &numOfArg);
+        }
         
         bool runProLine;
         

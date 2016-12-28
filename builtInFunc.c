@@ -10,6 +10,8 @@
 
 void exitBuiltIn (char **line);
 void aechoBuiltIn (char **line);
+void envsetBuiltIn (char **line);
+void envunsetBuiltIn (char **line);
 
 // This compares the string at line[0] to the built in function program name in my builtIns array
 // It has a return type of bool in order to make sure processline doesnt run
@@ -19,10 +21,14 @@ bool builtInFunc (char **line)
     char *builtIns[n];
     builtIns[0] = "exit";
     builtIns[1] = "aecho";
+    builtIns[2] = "envset";
+    builtIns[3] = "envunset";
     typedef void (*funcBuiltIn)(char **line);
     funcBuiltIn funcBuiltInArr[n];
     funcBuiltInArr[0] = exitBuiltIn;
     funcBuiltInArr[1] = aechoBuiltIn;
+    funcBuiltInArr[2] = envsetBuiltIn;
+    funcBuiltInArr[3] = envsetBuiltIn;
     
     for (int c = 0; c < n; c++)
     {
@@ -101,4 +107,17 @@ void aechoBuiltIn (char **line)
             }
         }
     }    
+}
+
+void envsetBuiltIn (char **line)
+{
+    if (line[0] == 0)
+    {
+        //int setenv(line[0], line[1])
+    }
+}
+
+void envunsetBuiltIn (char **line)
+{
+    
 }
