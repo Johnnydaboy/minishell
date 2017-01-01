@@ -17,7 +17,8 @@ char ** arg_parse (char *line, int *argcp)
     int len = strlen(line) + 1;
     
     // This checks how many quotes I have in the argument
-    for (int numOfQuotes = 0; numOfQuotes < len; numOfQuotes++)
+    int numOfQuotes;
+    for (numOfQuotes = 0; numOfQuotes < len; numOfQuotes++)
     {
         if (line[numOfQuotes] == '"')
         {
@@ -30,7 +31,8 @@ char ** arg_parse (char *line, int *argcp)
     // This counts the total number of arguments I have along with quotes
     if ( quoteCount % 2 == 0)
     {
-        for (int i = 0; i < len; i++) 
+        int i;
+        for (i = 0; i < len; i++) 
         {
             if (line[i] == '"')
             {

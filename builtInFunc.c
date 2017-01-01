@@ -1,36 +1,38 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdbool.h>
+
 #include "proto.h"
 
 void exitBuiltIn (char **line);
 void aechoBuiltIn (char **line);
-//void envsetBuiltIn (char **line);
-//void envunsetBuiltIn (char **line);
+void envsetBuiltIn (char **line);
+void envunsetBuiltIn (char **line);
 
 // This compares the string at line[0] to the built in function program name in my builtIns array
 // It has a return type of bool in order to make sure processline doesnt run
 bool builtInFunc (char **line)
 {
-    int n = 2;
+    int n = 4;
     char *builtIns[n];
     builtIns[0] = "exit";
     builtIns[1] = "aecho";
-    //builtIns[2] = "envset";
-    //builtIns[3] = "envunset";
+    builtIns[2] = "envset";
+    builtIns[3] = "envunset";
     typedef void (*funcBuiltIn)(char **line);
     funcBuiltIn funcBuiltInArr[n];
     funcBuiltInArr[0] = exitBuiltIn;
     funcBuiltInArr[1] = aechoBuiltIn;
-    //funcBuiltInArr[2] = envsetBuiltIn;
-    //funcBuiltInArr[3] = envsetBuiltIn;
+    funcBuiltInArr[2] = envsetBuiltIn;
+    funcBuiltInArr[3] = envunsetBuiltIn;
     
-    for (int c = 0; c < n; c++)
+    int c;
+    for (c = 0; c < n; c++)
     {
         /* If it is built in since the index of the builtIns array and the function array are at identical
         we can use the variable c in order to call the correct function pointer to call the function */
@@ -109,17 +111,15 @@ void aechoBuiltIn (char **line)
     }    
 }
 
-/*
+
 void envsetBuiltIn (char **line)
 {
-    if (line[0] == 0)
-    {
-        //int setenv(line[0], line[1])
-    }
+    setenv(line[0], line[1], 1);
+
 }
+
 
 void envunsetBuiltIn (char **line)
 {
-    
+    unsetenv(line[0]);
 }
-*/

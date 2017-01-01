@@ -6,11 +6,11 @@
  *
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdbool.h>
@@ -52,6 +52,10 @@ int main()
         if (successfulExpand != 0)
         {
             location = arg_parse(expandBuffer, &numOfArg);
+        }        
+        else if (successfulExpand == 0)
+        {
+            continue;
         }
         
         bool runProLine;
@@ -80,7 +84,7 @@ int main()
         
         // Frees up the malloc'ed location by arg_parse
         free(location);
-        
+
     }
 
     if (!feof(stdin)) {

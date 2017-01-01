@@ -1,52 +1,67 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdbool.h>
 #include "proto.h"
 
 int findInz (char * orig, char * Inz);
-bool envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 //bool envptwo (char * origBuffLoc, char * newBuff, int * counter);
 
 int expand (char *orig, char *new, int newsize)
 {
-    int n = 1;
-    char *Inz[n];
+    int lenOfFuncArr = 1;
+    char *Inz[lenOfFuncArr];
     Inz[0] = "${";
     //Inz[1] = "$$";
     int whereIsInz = 0;
-    typedef bool (*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-    funcInz funcInzArr[n];
+    int whereIsNew = 0;
+    typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+    funcInz funcInzArr[lenOfFuncArr];
     funcInzArr[0] = envpone;
     //funcInzArr[1] = envptwo;
+    int lenOfParam = 0;
     
     while (orig[whereIsInz] != 0)
     {  
-        for (int g = 0; g < n; g++)
+        int g;
+        for (g = 0; g < lenOfFuncArr; g++)
         {
-            int h = findInz(&orig[whereIsInz], Inz[g]);
-            if (h != 0)
+            lenOfParam = 0;
+            lenOfParam = findInz(&orig[whereIsInz], Inz[g]);
+            if (lenOfParam != 0)
             {
                 int inputC = 0;
                 int inputNew = 0;
-                whereIsInz = whereIsInz + h;
-                bool finish = (*funcInzArr[g])(&orig[whereIsInz], new, &inputC, &inputNew);
+                whereIsInz = whereIsInz + lenOfParam;
+                char * copyOver = (*funcInzArr[g])(&orig[whereIsInz], new, &inputC, &inputNew);
                 whereIsInz = whereIsInz + inputC;
-                new = new + inputNew;
-                if (finish == false)
+                whereIsNew = whereIsNew + inputNew;
+                if (whereIsNew > newsize)
                 {
-                    printf("An incident has occurred");
-                    return 0;
+                    printf("Expand too big\n");
+                    return 0; 
+                }
+                int i;
+                for (i = 0; i < inputNew; i++)
+                {
+                    *new = *copyOver;
+                    new++;
+                    copyOver++;
                 }
             }
         }
-        *new = orig[whereIsInz];
-        new++;
-        whereIsInz++;
+        if (lenOfParam == 0)
+        {
+            *new = orig[whereIsInz];
+            new++;
+            whereIsInz++;
+            whereIsNew++;
+        }
         
     }
     *new = 0;
@@ -73,7 +88,7 @@ int findInz (char * orig, char * Inz)
     return 0;
 }
 
-bool envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     char * ptr2temp;
     int count = 0;
@@ -85,7 +100,7 @@ bool envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNe
         count++;
         if (*origBuffLoc == 0)
         {
-            return false;
+            return NULL;
         }
     }
     
@@ -95,7 +110,7 @@ bool envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNe
     
     if (count == 1)
     {
-        return true;
+        return NULL;
     }
     
     
@@ -103,11 +118,13 @@ bool envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNe
     
     if (envstr == NULL)
     {
-        return true;
+        return NULL;
     }
     
     int much = strlen(envstr);
-    *counterNew = much; 
+    *counterNew = much;
+    return envstr;
+    /*
     for (int m = 0; m < much; m++)
     {
         *newBuff = *envstr;
@@ -115,6 +132,7 @@ bool envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNe
         envstr++;
     }
     return true;
+    */
 }
 
 /* bool envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
