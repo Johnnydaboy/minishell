@@ -9,10 +9,10 @@
 
 #include "proto.h"
 
-void exitBuiltIn (char **line);
-void aechoBuiltIn (char **line);
-void envsetBuiltIn (char **line);
-void envunsetBuiltIn (char **line);
+void exitBuiltIn (char **line, int args);
+void aechoBuiltIn (char **line, int args);
+void envsetBuiltIn (char **line, int args);
+void envunsetBuiltIn (char **line, int args);
 
 // This compares the string at line[0] to the built in function program name in my builtIns array
 // It has a return type of bool in order to make sure processline doesnt run
@@ -24,7 +24,7 @@ bool builtInFunc (char **line, int args)
     builtIns[1] = "aecho";
     builtIns[2] = "envset";
     builtIns[3] = "envunset";
-    typedef void (*funcBuiltIn)(char **line);
+    typedef void (*funcBuiltIn)(char **line, int args);
     funcBuiltIn funcBuiltInArr[n];
     funcBuiltInArr[0] = exitBuiltIn;
     funcBuiltInArr[1] = aechoBuiltIn;
@@ -49,11 +49,26 @@ bool builtInFunc (char **line, int args)
 void exitBuiltIn (char **line, int numArgs)
 {
     int intStr;
+    /* 
     if (line[0] == 0)
     {
         exit(0);
     }
     else if (line[1] != 0)
+    {
+        printf("You have too many arguments\n");
+    }
+    else
+    {
+        intStr = atoi (line[0]);
+        exit(intStr);
+    }
+    */
+    if (numArgs == 0)
+    {
+        exit(0);
+    }
+    else if (numArgs > 1)
     {
         printf("You have too many arguments\n");
     }
@@ -114,6 +129,7 @@ void aechoBuiltIn (char **line, int numArgs)
 
 void envsetBuiltIn (char **line, int numArgs)
 {
+    /*
     if (line[1] == 0)
     {
         printf("You have nothing to set");
@@ -126,18 +142,47 @@ void envsetBuiltIn (char **line, int numArgs)
     {
         setenv(line[0], line[1], 1);
     }
+    */
+    
+    if (numArgs == 0)
+    {
+        printf("You have nothing to set");
+    }
+    else if (numArgs > 2)
+    {
+        printf("You have too many arguments\n");
+    }
+    else
+    {
+        setenv(line[0], line[1], 1);
+    }
 }
 
 
 void envunsetBuiltIn (char **line, int numArgs)
 {
+    /*
     if (line[0] == 0)
     {
-        printf("You have nothing to remove");
+        printf("You have nothing to remove]n");
     }
     else if (line[1] != 0)
     {
         printf("You have too many arguments\n");
     }
     unsetenv(line[0]);
+    */
+    
+    if (numArgs == 0)
+    {
+        printf("You have nothing to remove\n");
+    }
+    else if (numArgs > 1)
+    {
+        printf("You have too many arguments\n");
+    }
+    else
+    {
+        unsetenv(line[0]);
+    }
 }
