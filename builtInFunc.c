@@ -38,7 +38,7 @@ bool builtInFunc (char **line, int args)
         we can use the variable c in order to call the correct function pointer to call the function */
         if (strcmp(line[0], builtIns[c]) == 0 )
         {
-            (*funcBuiltInArr[c])(&line[1], args - 1);
+            (*funcBuiltInArr[c])(&line[1], args - 2);
             return true;
         }
     }
@@ -87,6 +87,11 @@ void aechoBuiltIn (char **line, int numArgs)
     int counterb = 1;
     bool finish = false;
     
+    if (numArgs == 0)
+    {
+        return;
+    }
+    
     // This is the implementation for the -n for the echo
     if (strcmp(line[0], "-n") == 0)
     {
@@ -129,60 +134,23 @@ void aechoBuiltIn (char **line, int numArgs)
 
 void envsetBuiltIn (char **line, int numArgs)
 {
-    /*
-    if (line[1] == 0)
+    if (numArgs != 2)
     {
-        printf("You have nothing to set");
+        printf("Error: Invalid number of arguments for envset\n");
+        return;
     }
-    else if (line[2] != 0)
-    {
-        printf("You have too many arguments\n");
-    }
-    else
-    {
-        setenv(line[0], line[1], 1);
-    }
-    */
     
-    if (numArgs == 0)
-    {
-        printf("You have nothing to set");
-    }
-    else if (numArgs > 2)
-    {
-        printf("You have too many arguments\n");
-    }
-    else
-    {
-        setenv(line[0], line[1], 1);
-    }
+    setenv(line[0], line[1], 1);
 }
 
 
 void envunsetBuiltIn (char **line, int numArgs)
 {
-    /*
-    if (line[0] == 0)
+    if (numArgs != 1)
     {
-        printf("You have nothing to remove]n");
+        printf("Error: Invalid number of arguments for envunset\n");
+        return;
     }
-    else if (line[1] != 0)
-    {
-        printf("You have too many arguments\n");
-    }
-    unsetenv(line[0]);
-    */
     
-    if (numArgs == 0)
-    {
-        printf("You have nothing to remove\n");
-    }
-    else if (numArgs > 1)
-    {
-        printf("You have too many arguments\n");
-    }
-    else
-    {
-        unsetenv(line[0]);
-    }
+    unsetenv(line[0]);
 }
