@@ -8,22 +8,26 @@
 #include <stdbool.h>
 #include "proto.h"
 
+
+char globalStrValOfInt[700];
 int findInz (char * orig, char * Inz);
 char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-//bool envptwo (char * origBuffLoc, char * newBuff, int * counter);
+char * envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 
+// This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
+// In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    int lenOfFuncArr = 1;
+    int lenOfFuncArr = 2;
     char *Inz[lenOfFuncArr];
     Inz[0] = "${";
-    //Inz[1] = "$$";
+    Inz[1] = "$$";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
     funcInz funcInzArr[lenOfFuncArr];
     funcInzArr[0] = envpone;
-    //funcInzArr[1] = envptwo;
+    funcInzArr[1] = envptwo;
     int lenOfParam = 0;
     
     while (orig[whereIsInz] != 0)
@@ -39,6 +43,11 @@ int expand (char *orig, char *new, int newsize)
                 int inputNew = 0;
                 whereIsInz = whereIsInz + lenOfParam;
                 char * copyOver = (*funcInzArr[g])(&orig[whereIsInz], new, &inputC, &inputNew);
+                if (inputNew == -1)
+                {
+                    printf("${: No matching }\n");
+                    return 0;
+                }
                 whereIsInz = whereIsInz + inputC;
                 whereIsNew = whereIsNew + inputNew;
                 if (whereIsNew > newsize)
@@ -100,6 +109,7 @@ char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counter
         count++;
         if (*origBuffLoc == 0)
         {
+            *counterNew = -1;
             return NULL;
         }
     }
@@ -135,8 +145,12 @@ char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counter
     */
 }
 
-/* bool envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
-    
+    int envint = getpid();
+    sprintf(globalStrValOfInt,"%d", envint);
+    int cNew = strlen(globalStrValOfInt);
+    *counterNew = cNew;
+    return globalStrValOfInt;
 }
-*/
+

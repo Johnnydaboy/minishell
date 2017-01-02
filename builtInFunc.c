@@ -13,23 +13,26 @@ void exitBuiltIn (char **line, int args);
 void aechoBuiltIn (char **line, int args);
 void envsetBuiltIn (char **line, int args);
 void envunsetBuiltIn (char **line, int args);
+void chdirBuiltIn (char **line, int args);
 
 // This compares the string at line[0] to the built in function program name in my builtIns array
 // It has a return type of bool in order to make sure processline doesnt run
 bool builtInFunc (char **line, int args)
 {
-    int n = 4;
+    int n = 5;
     char *builtIns[n];
     builtIns[0] = "exit";
     builtIns[1] = "aecho";
     builtIns[2] = "envset";
     builtIns[3] = "envunset";
+    builtIns[4] = "cd";
     typedef void (*funcBuiltIn)(char **line, int args);
     funcBuiltIn funcBuiltInArr[n];
     funcBuiltInArr[0] = exitBuiltIn;
     funcBuiltInArr[1] = aechoBuiltIn;
     funcBuiltInArr[2] = envsetBuiltIn;
     funcBuiltInArr[3] = envunsetBuiltIn;
+    funcBuiltInArr[4] = chdirBuiltIn;
     
     int c;
     for (c = 0; c < n; c++)
@@ -153,4 +156,31 @@ void envunsetBuiltIn (char **line, int numArgs)
     }
     
     unsetenv(line[0]);
+}
+
+void chdirBuiltIn (char **line, int numArgs)
+{   
+    if (numArgs == 0)
+    {
+        char * homeDir = getenv("HOME");
+        if (homeDir == 0)
+        {
+            printf("Nothing in homeDir\n");
+            return;
+        }
+        chdir(homeDir);
+        return;
+    }
+    else if (numArgs == 1)
+    {
+        int isThere = chdir(line[0]);
+        if (isThere == -1)
+        {
+            printf("Directory does not exist\n");
+        }
+        return;
+    }
+    printf("Error: Invalid number of arguments for cd\n");
+    return;
+    chdir(line[0]);
 }
