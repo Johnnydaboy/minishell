@@ -77,6 +77,7 @@ int expand (char *orig, char *new, int newsize)
     return 1;
 }
 
+// This function finds the next initilizing variable and returns the location of it if any
 int findInz (char * orig, char * Inz)
 {
     int counter = 0;
@@ -97,6 +98,7 @@ int findInz (char * orig, char * Inz)
     return 0;
 }
 
+// This is the first expand subfunction which does and expand to ${} 
 char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     char * ptr2temp;
@@ -134,17 +136,9 @@ char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counter
     int much = strlen(envstr);
     *counterNew = much;
     return envstr;
-    /*
-    for (int m = 0; m < much; m++)
-    {
-        *newBuff = *envstr;
-        newBuff++;
-        envstr++;
-    }
-    return true;
-    */
 }
 
+// The second expand subfunction which expands the $$ environment
 char * envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int envint = getpid();

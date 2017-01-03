@@ -7,7 +7,8 @@
 #include <sys/wait.h>
 #include <stdbool.h>
 #include "proto.h"
-
+/* This function takes in a string from the input of the GUI and returns the seperates the arguments with 
+memory locations and returns those memory locations */
 char ** arg_parse (char *line, int *argcp)
 {
     int counter = 0;
@@ -77,7 +78,6 @@ char ** arg_parse (char *line, int *argcp)
     }        
     counter = counter + 1;
     *argcp = counter;
-    //printf("You have this many arguments: %d\n", counter);   
     
     // This mallocs the correct number of memory based on the number of arguments you have
     char ** ptrToStrArr = (char** ) malloc(sizeof (char*) * counter);
@@ -127,10 +127,6 @@ char ** arg_parse (char *line, int *argcp)
     }
     *ptr1 = *ptr2;
     ptrToStrArr[ptrToStrArrCounter] = NULL;
-    //for(int g = 0; g < ptrToStrArrCounter; g++)
-    //{
-    //    printf("Your char is: %s\n", ptrToStrArr[g]);
-    //}
     
     return ptrToStrArr;
 }

@@ -52,21 +52,6 @@ bool builtInFunc (char **line, int args)
 void exitBuiltIn (char **line, int numArgs)
 {
     int intStr;
-    /* 
-    if (line[0] == 0)
-    {
-        exit(0);
-    }
-    else if (line[1] != 0)
-    {
-        printf("You have too many arguments\n");
-    }
-    else
-    {
-        intStr = atoi (line[0]);
-        exit(intStr);
-    }
-    */
     if (numArgs == 0)
     {
         exit(0);
@@ -134,7 +119,7 @@ void aechoBuiltIn (char **line, int numArgs)
     }    
 }
 
-
+// Another built in command the third to be percise, sets environment variables
 void envsetBuiltIn (char **line, int numArgs)
 {
     if (numArgs != 2)
@@ -146,7 +131,7 @@ void envsetBuiltIn (char **line, int numArgs)
     setenv(line[0], line[1], 1);
 }
 
-
+// The fourth built in function unsets variables that have been set
 void envunsetBuiltIn (char **line, int numArgs)
 {
     if (numArgs != 1)
@@ -158,6 +143,7 @@ void envunsetBuiltIn (char **line, int numArgs)
     unsetenv(line[0]);
 }
 
+// The fifth built in function changes your current directory depending on the second argument
 void chdirBuiltIn (char **line, int numArgs)
 {   
     if (numArgs == 0)
