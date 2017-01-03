@@ -9,7 +9,7 @@
 #include "proto.h"
 
 
-char globalStrValOfInt[700];
+char globalStrValOfInt[20];
 int findInz (char * orig, char * Inz);
 char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -30,6 +30,7 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[1] = envptwo;
     int lenOfParam = 0;
     
+    // This while loop will continue to execute until the orig string reads at 0 
     while (orig[whereIsInz] != 0)
     {  
         int g;
@@ -42,12 +43,16 @@ int expand (char *orig, char *new, int newsize)
                 int inputC = 0;
                 int inputNew = 0;
                 whereIsInz = whereIsInz + lenOfParam;
+                // counter (orig counter is inputC) is added to the original buffer in order to skip ahead what is found in findInz
+                // ^ (new counter is inputNew) same applies to counterNew but with newBuff rather
                 char * copyOver = (*funcInzArr[g])(&orig[whereIsInz], new, &inputC, &inputNew);
+                // If it fail and no } is found it will print an error statement
                 if (inputNew == -1)
                 {
                     printf("${: No matching }\n");
                     return 0;
                 }
+                // This tells how far each string needs to skip by
                 whereIsInz = whereIsInz + inputC;
                 whereIsNew = whereIsNew + inputNew;
                 if (whereIsNew > newsize)
@@ -56,6 +61,7 @@ int expand (char *orig, char *new, int newsize)
                     return 0; 
                 }
                 int i;
+                // the single character copy over that is given if a function is called
                 for (i = 0; i < inputNew; i++)
                 {
                     *new = *copyOver;
@@ -109,6 +115,7 @@ char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counter
     {
         origBuffLoc++;
         count++;
+        // This is an error statement and above will check if -1 it will fail
         if (*origBuffLoc == 0)
         {
             *counterNew = -1;
