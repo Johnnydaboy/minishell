@@ -18,16 +18,16 @@ char * envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counter
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
     int lenOfFuncArr = 2;
     char *Inz[lenOfFuncArr];
-    funcInz funcInzArr[lenOfFuncArr];
-    
-    Inz[0] = "${"; funcInzArr[0] = envpone;
-    Inz[1] = "$$"; funcInzArr[1] = envptwo;
-    
+    Inz[0] = "${";
+    Inz[1] = "$$";
     int whereIsInz = 0;
     int whereIsNew = 0;
+    typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+    funcInz funcInzArr[lenOfFuncArr];
+    funcInzArr[0] = envpone;
+    funcInzArr[1] = envptwo;
     int lenOfParam = 0;
     
     // This while loop will continue to execute until the orig string reads at 0 

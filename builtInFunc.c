@@ -19,16 +19,20 @@ void chdirBuiltIn (char **line, int args);
 // It has a return type of bool in order to make sure processline doesnt run
 bool builtInFunc (char **line, int args)
 {
-    typedef void (*funcBuiltIn)(char **line, int args);
     int n = 5;
     char *builtIns[n];
+    builtIns[0] = "exit";
+    builtIns[1] = "aecho";
+    builtIns[2] = "envset";
+    builtIns[3] = "envunset";
+    builtIns[4] = "cd";
+    typedef void (*funcBuiltIn)(char **line, int args);
     funcBuiltIn funcBuiltInArr[n];
-    
-    builtIns[0] = "exit"; funcBuiltInArr[0] = exitBuiltIn;
-    builtIns[1] = "aecho"; funcBuiltInArr[1] = aechoBuiltIn;
-    builtIns[2] = "envset"; funcBuiltInArr[2] = envsetBuiltIn;
-    builtIns[3] = "envunset"; funcBuiltInArr[3] = envunsetBuiltIn;
-    builtIns[4] = "cd"; funcBuiltInArr[4] = chdirBuiltIn;
+    funcBuiltInArr[0] = exitBuiltIn;
+    funcBuiltInArr[1] = aechoBuiltIn;
+    funcBuiltInArr[2] = envsetBuiltIn;
+    funcBuiltInArr[3] = envunsetBuiltIn;
+    funcBuiltInArr[4] = chdirBuiltIn;
     
     int c;
     for (c = 0; c < n; c++)

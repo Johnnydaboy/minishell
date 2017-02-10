@@ -29,7 +29,7 @@ char ** arg_parse (char *line, int *argcp)
     }
     
     // If there is an odd number of quotes this won't run
-    // This counts the total number of arguments (arguments always separated by a space OUTSIDE of quotes)
+    // This counts the total number of arguments I have along with quotes
     if ( quoteCount % 2 == 0)
     {
         int i;
@@ -70,7 +70,7 @@ char ** arg_parse (char *line, int *argcp)
         }
     }
     
-    // If you have an odd number of quotes, don't malloc and simply return
+    // If you have an odd number of quotes it won't malloc the needed amount of memory
     else
     {
         printf("You can't have an odd number of quotes \n");
@@ -88,7 +88,7 @@ char ** arg_parse (char *line, int *argcp)
     char * ptr2 = line;
     
     /* This seeks out the beginning of each argument and sets the array for each beginning argument,
-    it then proceeds to seperate each argument so that each argument won't interfere with each other
+    it then proceeds to seperate each argument so that each argument won't interefer with each other
     and this finally gives you seperated arguments */
     while (*ptr2 != 0)
     {
