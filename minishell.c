@@ -22,7 +22,6 @@
 
 /* Prototypes */
 void processline (char **line);
-int runFourFunctions (char *buffer, char *expandBuffer);
 
 /* Shell main */
 int main()
@@ -30,6 +29,8 @@ int main()
     char   buffer [LINELEN];
     char   expandBuffer [LINELEN];
     int    len;
+    int numOfArg = 0;
+    char ** location;
 
     while (1) {
 
@@ -45,11 +46,45 @@ int main()
             buffer[len-1] = 0;
         }
         
-        int functional = runFourFunctions (buffer, expandBuffer);
-        if (functional == 1)
+        int successfulExpand = expand(buffer, expandBuffer, LINELEN);
+        
+        // Running arg_parse in order to return the arguments in a seperated string array format
+        if (successfulExpand != 0)
+        {
+            location = arg_parse(expandBuffer, &numOfArg);
+        }        
+        else if (successfulExpand == 0)
         {
             continue;
         }
+        
+        bool runProLine;
+        
+        /* Run it ... */
+        // Kinda uneccesary but check to make sure that the process won't run if nothing is given to arg_parse
+        if (numOfArg != 1)
+        {           
+            runProLine = builtInFunc(location, numOfArg);
+        }
+        else
+        {
+            runProLine = false;
+        }
+        
+        // This checks to make sure if there are no built in functions then it will call the library
+        // Also checks to make sure processline won't run if nothing was given to arg_parse
+        if (numOfArg != 1)
+        {
+            // This makes sure that processline doesn't run if a built in function was called
+            if (runProLine == false)
+            {
+                processline (location);
+            }
+        }
+        
+        // Frees up the malloc'ed location by arg_parse
+        free(location);
+
     }
 
     if (!feof(stdin)) {
@@ -84,51 +119,6 @@ void processline (char **line)
     if (wait (&status) < 0) {
       perror ("wait");
     }
-}
-
-int runFourFunctions (char *buffer, char *expandBuffer)
-{
-    char ** location;
-    int numOfArg = 0;
-    int successfulExpand = expand(buffer, expandBuffer, LINELEN);
-            
-    // Running arg_parse in order to return the arguments in a seperated string array format
-    if (successfulExpand != 0)
-    {
-        location = arg_parse(expandBuffer, &numOfArg);
-    }        
-    else if (successfulExpand == 0)
-    {
-        return 1;
-    }
-    
-    bool runProLine;
-    
-    /* Run it ... */
-    // Kinda unneccesary but check to make sure that the process won't run if nothing is given to arg_parse
-    if (numOfArg != 1)
-    {           
-        runProLine = builtInFunc(location, numOfArg);
-    }
-    else
-    {
-        runProLine = false;
-    }
-    
-    // This checks to make sure if there are no built in functions then it will call the library
-    // Also checks to make sure processline won't run if nothing was given to arg_parse
-    if (numOfArg != 1)
-    {
-        // This makes sure that processline doesn't run if a built in function was called
-        if (runProLine == false)
-        {
-            processline (location);
-        }
-    }
-    
-    // Frees up the malloc'ed location by arg_parse
-    free(location);
-    return 0;
 }
 
 
