@@ -77,7 +77,7 @@ int main(int mainargc, char **mainargv)
         //printf("%d", countercc);
         while (fgets(buffptr1, 2, fileopener)!= NULL)
         {   
-            //``printf("%d-%d\n",countercc,*buffptr1);
+            printf("%d-%d\n",countercc,*buffptr1);
             if (countercc == 973)
             {
                 printf("buffer overflow\n");
@@ -98,7 +98,6 @@ int main(int mainargc, char **mainargv)
             buffptr1++;
             countercc++;
         }
-        functional = runFourFunctions(buffer, expandBuffer);
     }
 
     return 0; /* Also known as exit (0); */
@@ -175,4 +174,3 @@ int runFourFunctions (char *buffer, char *expandBuffer)
     free(location);
     return 0;
 }
-
