@@ -25,35 +25,78 @@ void processline (char **line);
 int runFourFunctions (char *buffer, char *expandBuffer);
 
 /* Shell main */
-int main()
+int main(int mainargc, char **mainargv)
 {
     char   buffer [LINELEN];
     char   expandBuffer [LINELEN];
     int    len;
-
-    while (1) {
-
-        /* prompt and get line */
-        fprintf (stderr, "%% ");
-        if (fgets (buffer, LINELEN, stdin) != buffer){
-            break;
-        }
-        
-        /* Get rid of \n at end of buffer. */
-        len = strlen(buffer);
-        if (buffer[len-1] == '\n'){
-            buffer[len-1] = 0;
-        }
-        
-        int functional = runFourFunctions (buffer, expandBuffer);
-        if (functional == 1)
+    FILE * fileopener;
+    int countercc;
+    int functional;
+    
+    if (mainargc == 1)
+    {
+        while (1) 
         {
-            continue;
+
+            /* prompt and get line */
+            fprintf (stderr, "%% ");
+            if (fgets (buffer, LINELEN, stdin) != buffer){
+                break;
+            }
+            
+            /* Get rid of \n at end of buffer. */
+            len = strlen(buffer);
+            if (buffer[len-1] == '\n'){
+                buffer[len-1] = 0;
+            }
+            
+            functional = runFourFunctions (buffer, expandBuffer);
+            if (functional == 1)
+            {
+                continue;
+            }
+        }
+
+        if (!feof(stdin)) {
+            perror ("read");
         }
     }
-
-    if (!feof(stdin)) {
-        perror ("read");
+    else if (mainargc > 1)
+    {
+        countercc = 0;
+        fileopener = fopen(mainargv[1],"r");
+        if (fileopener == NULL)
+        {
+            printf("Error in opening file\n");
+            exit(127);
+        }
+        
+        char * buffptr1 = buffer;
+        //printf("%d", countercc);
+        while (fgets(buffptr1, 2, fileopener)!= NULL)
+        {
+            //printf("%d-%d\n",countercc,*buffptr1);
+            if (countercc == 1023)
+            {
+                printf("buffer overflow\n");
+                exit(127);
+            }
+            else if (*buffptr1 == '\n')
+            {  
+                functional = runFourFunctions(buffer, expandBuffer);
+                if (functional == 1)
+                {
+                    printf("Error \n");
+                }
+                countercc = 0;
+                buffptr1 = buffer;
+                continue;
+            }
+            buffptr1++;
+            countercc++;
+        }
+        functional = runFourFunctions(buffer, expandBuffer);
     }
 
     return 0; /* Also known as exit (0); */
@@ -130,5 +173,4 @@ int runFourFunctions (char *buffer, char *expandBuffer)
     free(location);
     return 0;
 }
-
 
