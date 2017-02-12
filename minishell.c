@@ -73,17 +73,19 @@ int main(int mainargc, char **mainargv)
         }
         
         char * buffptr1 = buffer;
+        //int check = 1;
         //printf("%d", countercc);
         while (fgets(buffptr1, 2, fileopener)!= NULL)
-        {
-            //printf("%d-%d\n",countercc,*buffptr1);
-            if (countercc == 1023)
+        {   
+            //``printf("%d-%d\n",countercc,*buffptr1);
+            if (countercc == 973)
             {
                 printf("buffer overflow\n");
                 exit(127);
-            }
+            }        
             else if (*buffptr1 == '\n')
             {  
+                *buffptr1 = 0;
                 functional = runFourFunctions(buffer, expandBuffer);
                 if (functional == 1)
                 {
