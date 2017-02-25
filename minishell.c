@@ -20,6 +20,9 @@
 
 #define LINELEN 1024
 
+int margc;
+char **margv;
+
 /* Prototypes */
 void processline (char **line);
 int runFourFunctions (char *buffer, char *expandBuffer);
@@ -32,8 +35,11 @@ int main(int mainargc, char **mainargv)
     int    len;
     FILE * fileopener;
     int countercc;
-    int functional;
-    
+    int functional; 
+    margc = mainargc;
+    margv = mainargv;
+    //printf("%d\n",margc);
+    //printf("%s\n",margv[0]);
     if (mainargc == 1)
     {
         while (1) 
@@ -73,12 +79,9 @@ int main(int mainargc, char **mainargv)
         }
         
         char * buffptr1 = buffer;
-        //int check = 1;
-        //printf("%d", countercc);
-        while (fgets(buffptr1, 2, fileopener)!= NULL)
-        {   
-            //printf("%d-%d\n",countercc,*buffptr1);
-            if (countercc == 1023)
+        while (fgets(buffptr1, 2, fileopener) != NULL)
+        {
+            if (countercc == LINELEN - 1)
             {
                 printf("buffer overflow\n");
                 exit(127);
@@ -87,6 +90,7 @@ int main(int mainargc, char **mainargv)
             {  
                 *buffptr1 = 0;
                 functional = runFourFunctions(buffer, expandBuffer);
+                *buffptr1 = '\n';
                 if (functional == 1)
                 {
                     printf("Error \n");
@@ -98,7 +102,7 @@ int main(int mainargc, char **mainargv)
             buffptr1++;
             countercc++;
         }
-        if (*buffptr1 == 0 && strlen(buffer)!= 2)
+        if (*buffptr1 == 0)
         {
             functional = runFourFunctions(buffer, expandBuffer);
             if (functional == 1)

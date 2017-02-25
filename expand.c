@@ -8,26 +8,33 @@
 #include <stdbool.h>
 #include "proto.h"
 
+extern int margc;
+extern char **margv;
 
 char globalStrValOfInt[20];
 int findInz (char * orig, char * Inz);
-char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-
+char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 // This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    int lenOfFuncArr = 2;
+    int lenOfFuncArr = 4;
     char *Inz[lenOfFuncArr];
     Inz[0] = "${";
     Inz[1] = "$$";
+    Inz[2] = "$#";
+    Inz[3] = "$";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
     funcInz funcInzArr[lenOfFuncArr];
-    funcInzArr[0] = envpone;
-    funcInzArr[1] = envptwo;
+    funcInzArr[0] = dollarSignCurlyBrace;
+    funcInzArr[1] = dollarSignDollarSign;
+    funcInzArr[2] = dollarSignPoundSign;
+    funcInzArr[3] = dollarSignN;
     int lenOfParam = 0;
     
     // This while loop will continue to execute until the orig string reads at 0 
@@ -50,6 +57,10 @@ int expand (char *orig, char *new, int newsize)
                 if (inputNew == -1)
                 {
                     printf("${: No matching }\n");
+                    return 0;
+                }
+                else if (inputC == -1)
+                {
                     return 0;
                 }
                 // This tells how far each string needs to skip by
@@ -105,7 +116,7 @@ int findInz (char * orig, char * Inz)
 }
 
 // This is the first expand subfunction which does and expand to ${} 
-char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     char * ptr2temp;
     int count = 0;
@@ -146,7 +157,7 @@ char * envpone (char * origBuffLoc, char * newBuff, int * counter, int * counter
 }
 
 // The second expand subfunction which expands the $$ environment
-char * envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int envint = getpid();
     sprintf(globalStrValOfInt,"%d", envint);
@@ -154,4 +165,74 @@ char * envptwo (char * origBuffLoc, char * newBuff, int * counter, int * counter
     *counterNew = cNew;
     return globalStrValOfInt;
 }
+
+char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    int argsHere;
+    if (margc != 1)
+    {
+        argsHere = margc - 1;
+    }
+    else
+    {
+        argsHere = margc;
+    }
+    sprintf(globalStrValOfInt, "%d", argsHere);
+    *counterNew = strlen(globalStrValOfInt);
+    return globalStrValOfInt;
+}
+
+char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    int totalNum = 0;
+    int length = 0;
+    int isOver = 0;
+    bool isNormal = true;
+    //printf("%s\n", origBuffLoc);
+    //printf("%d\n", margc);
+    if (*origBuffLoc == ' ' || *origBuffLoc == 0)
+    {
+        return NULL;
+        //printf("asdhkjsahkdashdjhsakhjhjhkjhjhkhhjkhkj");
+    }
+    while (*origBuffLoc != ' ' && *origBuffLoc != 0)
+    {
+        //printf("%d\n", totalNum);
+        //printf("%d\n", length);
+        //printf("%c\n", *origBuffLoc);
+        if (*origBuffLoc >= '0' && *origBuffLoc <= '9')
+        {
+            //printf("hi");
+            totalNum = totalNum * 10 + *origBuffLoc - '0';
+            //printf("%d\n", totalNum);
+        }
+        else
+        {
+            isNormal = false;
+        }
+        if (totalNum != 0 && totalNum >= margc - 1)
+        {
+            isOver = -1;
+        }
+       
+        length++;
+        origBuffLoc++;
+    }
+    if (isNormal == false || isOver == -1)
+    {
+        *counter = length;
+        return NULL;
+    }
+    if (margc != 1)
+    {
+       totalNum++;
+    }
+    memcpy(newBuff, margv[totalNum], strlen(margv[totalNum])+1);
+    //printf("%s\n", newBuff);
+    *counter = length;
+    *counterNew = strlen(margv[totalNum]);
+    return newBuff;
+    
+}
+
 
