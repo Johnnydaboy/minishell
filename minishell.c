@@ -39,7 +39,13 @@ int main(int mainargc, char **mainargv)
     margc = mainargc;
     margv = mainargv;
     //printf("%d\n",margc);
-    //printf("%s\n",margv[0]);
+    //printf("%d\n",margv[0]);
+    /*while (*margv != 0){
+        printf("%s\n", *margv);
+        margv++;
+    }*/
+    //printf("%d\n",*margv[6]);
+    //^there it no /0????
     if (mainargc == 1)
     {
         while (1) 
