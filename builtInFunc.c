@@ -6,26 +6,46 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdbool.h>
+#include <sys/types.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include "proto.h"
 
+extern int margc;
+extern char **margv;
+extern bool normalExit;
+
+int counterforUnshift = 0;
+int counterforShift = 0;
+bool enterShift = false;
 void exitBuiltIn (char **line, int args);
 void aechoBuiltIn (char **line, int args);
 void envsetBuiltIn (char **line, int args);
 void envunsetBuiltIn (char **line, int args);
 void chdirBuiltIn (char **line, int args);
+void shiftBuiltIn (char **line, int args);
+void unShiftBuiltIn (char **line, int numArgs);
+void sstat (char **line, int numArgs);
+void DisplayToConsole(char *filename);
+
 
 // This compares the string at line[0] to the built in function program name in my builtIns array
 // It has a return type of bool in order to make sure processline doesnt run
 bool builtInFunc (char **line, int args)
 {
-    int n = 5;
+    int n = 8;
     char *builtIns[n];
     builtIns[0] = "exit";
     builtIns[1] = "aecho";
     builtIns[2] = "envset";
     builtIns[3] = "envunset";
     builtIns[4] = "cd";
+    builtIns[5] = "shift";
+    builtIns[6] = "unshift";
+    builtIns[7] = "sstat";
     typedef void (*funcBuiltIn)(char **line, int args);
     funcBuiltIn funcBuiltInArr[n];
     funcBuiltInArr[0] = exitBuiltIn;
@@ -33,7 +53,11 @@ bool builtInFunc (char **line, int args)
     funcBuiltInArr[2] = envsetBuiltIn;
     funcBuiltInArr[3] = envunsetBuiltIn;
     funcBuiltInArr[4] = chdirBuiltIn;
-    
+    funcBuiltInArr[5] = shiftBuiltIn;
+    funcBuiltInArr[6] = unShiftBuiltIn;
+    funcBuiltInArr[7] = sstat;
+
+    normalExit = true;
     int c;
     for (c = 0; c < n; c++)
     {
@@ -58,6 +82,7 @@ void exitBuiltIn (char **line, int numArgs)
     }
     else if (numArgs > 1)
     {
+        normalExit = false;
         printf("You have too many arguments\n");
     }
     else
@@ -77,6 +102,7 @@ void aechoBuiltIn (char **line, int numArgs)
     
     if (numArgs == 0)
     {
+        normalExit = false;
         return;
     }
     
@@ -124,6 +150,7 @@ void envsetBuiltIn (char **line, int numArgs)
 {
     if (numArgs != 2)
     {
+        normalExit = false;
         printf("Error: Invalid number of arguments for envset\n");
         return;
     }
@@ -136,6 +163,7 @@ void envunsetBuiltIn (char **line, int numArgs)
 {
     if (numArgs != 1)
     {
+        normalExit = false;
         printf("Error: Invalid number of arguments for envunset\n");
         return;
     }
@@ -151,6 +179,7 @@ void chdirBuiltIn (char **line, int numArgs)
         char * homeDir = getenv("HOME");
         if (homeDir == 0)
         {
+            normalExit = false;
             printf("Nothing in homeDir\n");
             return;
         }
@@ -162,6 +191,7 @@ void chdirBuiltIn (char **line, int numArgs)
         int isThere = chdir(line[0]);
         if (isThere == -1)
         {
+            normalExit = false;
             printf("Directory does not exist\n");
         }
         return;
@@ -169,4 +199,127 @@ void chdirBuiltIn (char **line, int numArgs)
     printf("Error: Invalid number of arguments for cd\n");
     return;
     chdir(line[0]);
+}
+
+void shiftBuiltIn (char **line, int numArgs)
+{   
+    int shiftBy;
+    if (enterShift == false)
+    {
+        enterShift = true;
+    }
+    if (margc <= 2)
+    {
+        normalExit = false;
+        return;
+    }
+    else
+    {
+        //printf("%d\n", margc);
+        //printf("%s\n", margv[0]);
+        if (numArgs == 0)
+        {
+            margv++;
+            counterforUnshift++;
+            //printf("%d\n", counterforUnshift);
+            //printf("%s\n", margv[0]);
+        }
+        else if (numArgs == 1)
+        {
+            shiftBy = atoi (line[0]);
+            if (shiftBy > ((margc - 1) - counterforUnshift))
+            {
+                normalExit = false;
+                printf("Overshifting please change the number to shift\n");
+                return;
+            }
+            counterforUnshift = counterforUnshift + shiftBy;
+            counterforShift = (margc - 1) - counterforUnshift;
+            margv = margv + shiftBy;    
+        }
+        else
+        { 
+            normalExit = false;
+            printf("Error: Invalid number of arguments for shift\n");
+            return;
+        } 
+    }
+    
+}
+
+void unShiftBuiltIn (char **line, int numArgs)
+{
+    int unshiftby;
+    if (numArgs == 0)
+    {
+        margv = margv - counterforUnshift;
+        counterforShift = counterforShift + counterforUnshift;
+        counterforUnshift = 0;
+    }
+    else if (numArgs == 1)
+    {
+        unshiftby = atoi (line[0]);
+        if (unshiftby > counterforUnshift)
+        {
+            normalExit = false;
+            printf("Undershifting please change the number to shift\n");
+            return;
+        }
+        counterforShift = counterforShift + counterforUnshift;
+        counterforUnshift = counterforUnshift - unshiftby;
+        margv = margv - unshiftby;
+    }
+    else
+    { 
+        normalExit = false;
+        printf("Error: Invalid number of arguments for unshift\n");
+        return;
+    }     
+}
+
+void DisplayToConsole(char *filename)
+{
+    struct stat fileStat;
+    stat(filename,&fileStat);
+    struct tm *info;
+    struct passwd *pwd;
+    struct group *grp;
+    time_t get_mtime;
+    char timeBuff[100];
+
+    printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
+    printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
+    printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
+    printf( (fileStat.st_mode & S_IXUSR) ? "x" : "-");
+    printf( (fileStat.st_mode & S_IRGRP) ? "r" : "-");
+    printf( (fileStat.st_mode & S_IWGRP) ? "w" : "-");
+    printf( (fileStat.st_mode & S_IXGRP) ? "x" : "-");
+    printf( (fileStat.st_mode & S_IROTH) ? "r" : "-");
+    printf( (fileStat.st_mode & S_IWOTH) ? "w" : "-");
+    printf( (fileStat.st_mode & S_IXOTH) ? "x" : "-");
+    printf("\t%ld", fileStat.st_nlink);
+
+    pwd = getpwuid(fileStat.st_uid);
+    printf("\t%s", pwd->pw_name);
+
+    grp = getgrgid(fileStat.st_gid);
+    printf("\t%s", grp->gr_name);
+    printf("\t%ld", fileStat.st_size);
+
+    get_mtime = fileStat.st_mtime;
+    info = localtime(&get_mtime);
+    strftime(timeBuff, sizeof(timeBuff), "%d.%m.%Y %H:%M:%S", info);
+    printf("\t%s", timeBuff);
+    printf("\t%s\n", filename);
+}
+
+void sstat (char **line, int numArgs)
+{
+    if (numArgs != 1)
+    {
+        printf("External error detected, please change number of variable to something applicable\n");
+        return;
+    }
+    DisplayToConsole(line[0]);
+    return;
 }
