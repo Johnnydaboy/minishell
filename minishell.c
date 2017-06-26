@@ -1,11 +1,3 @@
-/* CS 352 -- Mini Shell!  
- *
- *   Sept 21, 2000,  Phil Nelson
- *   Modified April 8, 2001 
- *   Modified January 6, 2003
- *
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

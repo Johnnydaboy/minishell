@@ -9,12 +9,7 @@
 #include "proto.h"
 #include <dirent.h>
 
-extern int margc;
-extern char **margv;
-extern bool runFourFunctions;
-extern int counterforShift;
-extern bool enterShift;
-extern bool normalExit;
+#include "globals.h"
 
 bool normalExit = true;
 char globalStrValOfInt[20];

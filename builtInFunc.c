@@ -13,10 +13,7 @@
 #include <grp.h>
 
 #include "proto.h"
-
-extern int margc;
-extern char **margv;
-extern bool normalExit;
+#include "globals.h"
 
 int counterforUnshift = 0;
 int counterforShift = 0;
@@ -204,15 +201,17 @@ void chdirBuiltIn (char **line, int numArgs)
 void shiftBuiltIn (char **line, int numArgs)
 {   
     int shiftBy;
+    //printf("%s\n", line[0]);
+    if (margc <= 2)
+    {
+        //normalExit = false;
+        return;
+    }
     if (enterShift == false)
     {
         enterShift = true;
     }
-    if (margc <= 2)
-    {
-        normalExit = false;
-        return;
-    }
+    
     else
     {
         //printf("%d\n", margc);
@@ -226,6 +225,7 @@ void shiftBuiltIn (char **line, int numArgs)
         }
         else if (numArgs == 1)
         {
+            //printf("here");
             shiftBy = atoi (line[0]);
             if (shiftBy > ((margc - 1) - counterforUnshift))
             {
