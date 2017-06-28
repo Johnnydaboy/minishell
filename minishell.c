@@ -14,6 +14,7 @@
 
 int margc;
 char **margv;
+int valueForExit;
 
 /* Prototypes */
 void processline (char **line);
