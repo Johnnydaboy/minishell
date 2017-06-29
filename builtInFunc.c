@@ -15,7 +15,7 @@
 #include "proto.h"
 #include "globals.h"
 
-int counterforUnshift = 0;
+//int counterTillZero = 0;
 int counterforShift = 0;
 bool enterShift = false;
 void exitBuiltIn (char **line, int args);
@@ -201,58 +201,39 @@ void chdirBuiltIn (char **line, int numArgs)
 }
 
 void shiftBuiltIn (char **line, int numArgs)
-{   
+{
+    //if (enterShift == false)
+    //{
+    //    //counterTillZero = margc;
+    //    enterShift = true;
+    //}
     int shiftBy;
-    //printf("%s\n", line[0]);
     if (margc <= 2)
     {
         //normalExit = false;
         return;
     }
-    else if (enterShift == false)
+    if (numArgs == 0)
     {
-        margv = margv + 2;
-        enterShift = true;
+        counterforShift++;
+        //counterTillZero--;
     }
-    
-    if (enterShift == true)
+    else if (numArgs == 1)
     {
-        //printf("%d\n", margc);
-        //printf("%s\n", margv[0]);
-        if (numArgs == 0)
+        shiftBy = atoi (line[0]);
+        if (shiftBy > ((margc - 2) - counterforShift))
         {
-            margv++;
-            counterforUnshift++;
-            counterforShift++;
-            //printf("shift here is %d\n", counterforShift);
-            //printf("%d\n", counterforUnshift);
-            //printf("%d\n", counterforShift);
-            //printf("%s\n", margv[0]);
-        }
-        else if (numArgs == 1)
-        {
-            //printf("here");
-            shiftBy = atoi (line[0]);
-            if (shiftBy > ((margc - 2) - counterforUnshift))
-            {
-                //normalExit = false;
-                printf("Overshifting please change the number to shift\n");
-                return;
-            }
-            counterforUnshift = counterforUnshift + shiftBy;
-            counterforShift = counterforShift + shiftBy;
-            //printf("%d\n", counterforUnshift);
-            //printf("%d\n", counterforShift);
-            margv = margv + shiftBy;    
-        }
-        else
-        { 
-            //normalExit = false;
-            printf("Error: Invalid number of arguments for shift\n");
+            printf("Overshifting please change the number to shift\n");
             return;
-        } 
+        }
+        counterforShift = counterforShift + shiftBy;
+        //counterTillZero = counterTillZero - shiftBy;
     }
-    
+    else 
+    {
+        printf("Error: Invalid number of arguments for shift\n");
+        return;
+    }
 }
 
 void unShiftBuiltIn (char **line, int numArgs)
@@ -260,28 +241,22 @@ void unShiftBuiltIn (char **line, int numArgs)
     int unshiftby;
     if (numArgs == 0)
     {
-        margv = margv - (counterforUnshift + 2);
+        //counterTillZero = margc;
         counterforShift = 0;
-        counterforUnshift = 0;
         //printf("locationa: %s\n", margv[0]);
     }
     else if (numArgs == 1)
     {
         unshiftby = atoi (line[0]);
         //printf("unshift by is %d\n", unshiftby);
-        if (unshiftby > counterforUnshift)
+        if (unshiftby > (counterforShift - 2))
         {
             normalExit = false;
             printf("Undershifting please change the number to shift\n");
             return;
         }
-        //printf("shift is %d\n", counterforShift);
         counterforShift = counterforShift - unshiftby;
-        counterforUnshift = counterforUnshift - unshiftby;
-        //printf("%d\n", counterforUnshift);
-        //printf("shift is %d\n", counterforShift);
-        margv = margv - unshiftby;
-        //printf("location: %s\n", margv[1]);
+        //counterTillZero = counterTillZero + unshiftby;
     }
     else
     { 

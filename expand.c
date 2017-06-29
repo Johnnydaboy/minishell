@@ -190,76 +190,40 @@ char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, i
     }
     else 
     {
-        while (*margv != 0)
-        {
-            //printf("%s\n", *margv);
-            //printf("%d\n", argsHere);
-            margv++;
-            argsHere++;
-        }
-        argsHere--;
+        argsHere = margc - (counterforShift + 1);
     }
     sprintf(globalStrValOfInt, "%d", argsHere);
     *counterNew = strlen(globalStrValOfInt);
-    margv = margv - argsHere;
-    //printf("%d\n", argsHere);
     return globalStrValOfInt;
 }
 
 char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
-     int totalNum = 0;
+    int totalNum = 0;
     int length = 0;
+    int locationInfo = 0;
     bool isOver = false;
     bool isNormal = true;
-    if (*origBuffLoc == ' ' || origBuffLoc == '\0')
-    {
-        printf("error here");
-        return NULL;
-    }
-    //if (counterforShift == 0 && enterShift == true)
-    //{
-    //    printf("here counter is zero shift is true\n");
-    //    *counter = length;
-    //    return NULL;
-    //}
-    
-    if (origBuffLoc == 0)
-    {
-        printf("Error: there is a zero\n");
-        *counter = length;
-        return NULL;
-    }
-    else if (*origBuffLoc == ' ')
+    //printf("%s\n",*origBuffLoc);
+    if (*origBuffLoc == NULL || *origBuffLoc == ' ' )
     {
         printf("error here\n");
-        return NULL;
-    }
-    else if (counterforShift == 0 && counterforUnshift > 0)
-    {
-        printf("Error: there is a zero\n");
-        *counter = length;
         return NULL;
     }
     //This algorithm converts strings into ints using the ASCII table (look at reference from char and their decimal 
     // numbers)
     while (*origBuffLoc != ' ' && *origBuffLoc != 0)
     {
-        //printf("Error: there is a number\n");
-        //printf("%d\n",margc);
         if (*origBuffLoc >= '0' && *origBuffLoc <= '9')
         {
-            //printf("Error: there is a zero converting to an int\n");
             totalNum = totalNum * 10 + *origBuffLoc - '0';
-            //printf("%d\n", totalNum);
         }
         else
         {
             isNormal = false;
         }
-        if (totalNum != 0 && totalNum >= margc - 1)
+        if (totalNum != 0 && totalNum > margc - (counterforShift + 1))
         {
-            //printf("Error: there is a int over the number of arguments\n");
             isOver = true;
         }
         length++;
@@ -267,68 +231,48 @@ char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * cou
     } 
     if (isNormal == false || isOver == true)
     {
-        //printf("Error: there is a number over the number of arguments or a character\n");
+        printf("n value exceeds corresponding argument\n");
         *counter = length;
-        //printf("here");
         return NULL;
     }
     else if (totalNum == 0)
     {
-        //printf("Error: there is a special case number\n");
-        if (counterforShift == 0 && margc == 1)
+        if (margc == 1)
         {
             memcpy(newBuff, margv[0], strlen(margv[0]));
+            *counter = length;
+            *counterNew = strlen(margv[0]);
         }
-        else
+        else if (margc != 0)
         {
-            if (counterforShift == 0 || counterforUnshift == 0)
-            {
-                totalNum++;
-                //printf("counter for shift: %d\n", counterforShift);
-                //printf("counter for totnum: %d\n", totalNum);
-                memcpy(newBuff, margv[totalNum - counterforShift], strlen(margv[totalNum - counterforShift]));
-                *counter = length;
-                *counterNew = strlen(margv[totalNum]);
-                return newBuff;
-            }
-            else if (counterforShift != 0)
-            {
-                counterforShift++;
-                //printf("counter for shift: %d\n", counterforShift);
-                //printf("counter for totnum: %d\n", totalNum);
-                margv = margv - counterforShift;
-                //printf("marg v is %s\n",margv[0]);
-                memcpy(newBuff, margv[0], strlen(margv[0]));
-                *counter = length;
-                *counterNew = strlen(margv[totalNum]);
-                margv = margv + counterforShift;
-                counterforShift--;
-                return newBuff;
-            }
-            //printf("number is %d\n", a);
+            memcpy(newBuff, margv[1], strlen(margv[1]));
+            *counter = length;
+            *counterNew = strlen(margv[1]);
         }
-    }
-    if (counterforShift == 0 && counterforUnshift == 0)
-    {
-        totalNum++;
-        //printf("goes here\n");
-        memcpy(newBuff, margv[totalNum], strlen(margv[totalNum]));
-        *counter = length;
-        *counterNew = strlen(margv[totalNum]);
-        totalNum--;
+        //printf("here2\n");
         return newBuff;
     }
-    //printf("counter for shift: %d\n", counterforShift);
-    //printf("counter for totnum: %d\n", totalNum);
-    //printf("Error: there is a normal case number\n");
-    //printf("total num s %s\n",margv[totalNum]);
-    //printf("at 1 s %s\n",margv[1]);
-    totalNum--;
-    memcpy(newBuff, margv[totalNum], strlen(margv[totalNum]));
-    *counter = length;
-    *counterNew = strlen(margv[totalNum]);
+    else if (totalNum != 0)
+    {
+        locationInfo = totalNum + 1 + counterforShift;
+        if (locationInfo == margc)
+        {
+            *counter = length;
+            return NULL;
+        }
+        memcpy(newBuff, margv[locationInfo], strlen(margv[locationInfo]));
+        *counter = length;
+        *counterNew = strlen(margv[locationInfo]);
+        return newBuff;
+    }
+    else
+    {
+        printf("Error: Something has occured\n");
+        return NULL;
+    }
     return newBuff;
 }
+
 
 char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
