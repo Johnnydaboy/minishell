@@ -16,7 +16,7 @@
 #include "globals.h"
 
 //int counterTillZero = 0;
-int counterforShift = 0;
+int counterForShift = 0;
 bool enterShift = false;
 void exitBuiltIn (char **line, int args);
 void aechoBuiltIn (char **line, int args);
@@ -210,28 +210,31 @@ void shiftBuiltIn (char **line, int numArgs)
     int shiftBy;
     if (margc <= 2)
     {
-        //normalExit = false;
+        normalExit = false;
+        printf("Nothing to shift here\n");
         return;
     }
     if (numArgs == 0)
     {
-        counterforShift++;
+        counterForShift++;
         //counterTillZero--;
     }
     else if (numArgs == 1)
     {
         shiftBy = atoi (line[0]);
-        if (shiftBy > ((margc - 2) - counterforShift))
+        if (shiftBy > ((margc - 2) - counterForShift))
         {
             printf("Overshifting please change the number to shift\n");
+            normalExit = false;
             return;
         }
-        counterforShift = counterforShift + shiftBy;
+        counterForShift = counterForShift + shiftBy;
         //counterTillZero = counterTillZero - shiftBy;
     }
     else 
     {
         printf("Error: Invalid number of arguments for shift\n");
+        normalExit = false;
         return;
     }
 }
@@ -242,20 +245,20 @@ void unShiftBuiltIn (char **line, int numArgs)
     if (numArgs == 0)
     {
         //counterTillZero = margc;
-        counterforShift = 0;
+        counterForShift = 0;
         //printf("locationa: %s\n", margv[0]);
     }
     else if (numArgs == 1)
     {
         unshiftby = atoi (line[0]);
         //printf("unshift by is %d\n", unshiftby);
-        if (unshiftby > (counterforShift - 2))
+        if (unshiftby > (counterForShift - 2))
         {
             normalExit = false;
             printf("Undershifting please change the number to shift\n");
             return;
         }
-        counterforShift = counterforShift - unshiftby;
+        counterForShift = counterForShift - unshiftby;
         //counterTillZero = counterTillZero + unshiftby;
     }
     else

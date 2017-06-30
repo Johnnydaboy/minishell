@@ -190,7 +190,7 @@ char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, i
     }
     else 
     {
-        argsHere = margc - (counterforShift + 1);
+        argsHere = margc - (counterForShift + 1);
     }
     sprintf(globalStrValOfInt, "%d", argsHere);
     *counterNew = strlen(globalStrValOfInt);
@@ -222,7 +222,7 @@ char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * cou
         {
             isNormal = false;
         }
-        if (totalNum != 0 && totalNum > margc - (counterforShift + 1))
+        if (totalNum != 0 && totalNum > margc - (counterForShift + 1))
         {
             isOver = true;
         }
@@ -254,7 +254,7 @@ char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * cou
     }
     else if (totalNum != 0)
     {
-        locationInfo = totalNum + 1 + counterforShift;
+        locationInfo = totalNum + 1 + counterForShift;
         if (locationInfo == margc)
         {
             *counter = length;
@@ -293,11 +293,11 @@ char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter
     */
     if (normalExit == true)
     {
-        printf("here\n");
+        //printf("here\n");
         //envint = getpid();
         //sprintf(globalStrValOfInt,"%d", envint);
         //printf("%d\n", valueForExit);
-        //sprintf(globalStrValOfInt, "%d", valueForExit);
+        sprintf(globalStrValOfInt, "%d", exitStatus);
         int cNew = strlen(globalStrValOfInt);
         *counterNew = cNew;
         return globalStrValOfInt;

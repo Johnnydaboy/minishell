@@ -14,7 +14,7 @@
 
 int margc;
 char **margv;
-int valueForExit;
+int exitStatus;
 
 /* Prototypes */
 void processline (char **line);
@@ -118,7 +118,7 @@ int main(int mainargc, char **mainargv)
 void processline (char **line)
 {
     pid_t  cpid;
-    int    status;
+    int status;
     
     /* Start a new process to do the job. */
     cpid = fork();
@@ -134,10 +134,15 @@ void processline (char **line)
       perror ("exec");
       exit (127);
     }
-    
     /* Have the parent wait for child to complete */
     if (wait (&status) < 0) {
       perror ("wait");
+    }
+    
+    if (WIFEXITED(status))
+    {
+        exitStatus = WEXITSTATUS(status);
+        //printf("Exit status was %d\n", exitStatus);
     }
 }
 
