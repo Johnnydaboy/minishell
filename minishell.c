@@ -151,7 +151,6 @@ int runFourFunctions (char *buffer, char *expandBuffer)
     char ** location;
     int numOfArg = 0;
     int successfulExpand = expand(buffer, expandBuffer, LINELEN);
-            
     // Running arg_parse in order to return the arguments in a seperated string array format
     if (successfulExpand != 0)
     {
@@ -161,7 +160,6 @@ int runFourFunctions (char *buffer, char *expandBuffer)
     {
         return 1;
     }
-    
     bool runProLine;
     
     /* Run it ... */

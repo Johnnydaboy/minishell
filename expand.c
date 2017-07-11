@@ -12,29 +12,31 @@
 #include "globals.h"
 
 bool normalExit = true;
-char globalStrValOfInt[20];
+int whatInz;
+char globalStrValOfInt[1024];
 int findInz (char * orig, char * Inz);
 char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-bool match (const char *pattern, const char *candidate, int p, int c);
-char **getResult(char *pattern, char *folderName, int *count);
-//char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+//bool match (const char *pattern, const char *candidate, int p, int c);
+//char **getResult(char *pattern, char *folderName, int *count);
+char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int comparisionFunc(char * comparBuf, char * dirBuf);
 // This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    int lenOfFuncArr = 5;
+    int lenOfFuncArr = 7;
     char *Inz[lenOfFuncArr];
     Inz[0] = "${";
     Inz[1] = "$$";
     Inz[2] = "$#";
     Inz[3] = "$?";
     Inz[4] = "$";
-    //Inz[5] = " *";
-    //Inz[6] = "\"\"*";
+    Inz[5] = "\"\"*";
+    Inz[6] = "*";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -44,18 +46,17 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[2] = dollarSignPoundSign;
     funcInzArr[3] = dollarSignQuestionMark;
     funcInzArr[4] = dollarSignN;
-    //funcInzArr[5] = wildCardExpand;
-    //funcInzArr[6] = wildCardExpand;
+    funcInzArr[5] = wildCardExpand;
+    funcInzArr[6] = wildCardExpand;
     int lenOfParam = 0;
     
     // This while loop will continue to execute until the orig string reads at 0 
     while (orig[whereIsInz] != 0)
     {  
-        int g;
-        for (g = 0; g < lenOfFuncArr; g++)
+        for (whatInz = 0; whatInz < lenOfFuncArr; whatInz++)
         {
             lenOfParam = 0;
-            lenOfParam = findInz(&orig[whereIsInz], Inz[g]);
+            lenOfParam = findInz(&orig[whereIsInz], Inz[whatInz]);
             if (lenOfParam != 0)
             {
                 int inputC = 0;
@@ -63,7 +64,7 @@ int expand (char *orig, char *new, int newsize)
                 whereIsInz = whereIsInz + lenOfParam;
                 // counter (orig counter is inputC) is added to the original buffer in order to skip ahead what is found in findInz
                 // ^ (new counter is inputNew) same applies to counterNew but with newBuff rather
-                char * copyOver = (*funcInzArr[g])(&orig[whereIsInz], new, &inputC, &inputNew);
+                char * copyOver = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
                 // If it fail and no } is found it will print an error statement
                 if (inputNew == -1)
                 {
@@ -99,9 +100,8 @@ int expand (char *orig, char *new, int newsize)
             whereIsInz++;
             whereIsNew++;
         }
-        
     }
-    *new = 0;
+    *new = '\0';
     return 1;
 }
 
@@ -316,6 +316,190 @@ char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter
     *counterNew = cNew;
     return globalStrValOfInt;
 }
+
+char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    struct dirent *Dirent;
+    DIR *dir;
+    char cwd[1024];
+    int printDir;
+    int loc = 0;
+    int lengthOfBuf = 0;
+    
+    if (getcwd(cwd, sizeof(cwd)) != NULL)
+    {
+        //printf("%s\n", cwd);
+    }
+    
+    dir = opendir(cwd);
+    if (dir == NULL)
+    {
+        printf ("Cannot open direcotry\n");
+        return NULL;
+    }
+    if (whatInz == 5)
+    {
+        globalStrValOfInt[loc] = ' ';
+        loc++;
+    }
+    bool matches = false;
+    while ((Dirent = readdir(dir)) != NULL)
+    {
+        printDir = comparisionFunc(origBuffLoc, Dirent->d_name);
+        if (printDir == 0)
+        {
+            matches = true;
+            int len = 0; 
+            /*
+            while (Dirent->d_name[len] != 0)
+            {
+                printf("%c\n", Dirent->d_name[len]);
+                len++;  
+            }
+            */
+            
+            while (Dirent->d_name[len] != '\0')
+            {
+                //printf("here\n");
+                globalStrValOfInt[loc] = Dirent->d_name[len];
+                loc++;
+                len++;
+            }
+            globalStrValOfInt[loc] = ' ';
+            loc++;
+            //printf ("%s\n", Dirent->d_name);
+        }
+        //i++;
+    }
+    if (matches == false)
+    {
+        globalStrValOfInt[loc] = '*';
+        loc++;
+        while (*origBuffLoc != ' ' && *origBuffLoc != '"' && *origBuffLoc != '\0')
+        {
+            globalStrValOfInt[loc] = *origBuffLoc;
+            origBuffLoc++;
+            lengthOfBuf++;
+            loc++;
+        }
+        *counter = lengthOfBuf;
+        *counterNew = strlen(globalStrValOfInt);
+        closedir(dir);
+        return globalStrValOfInt;
+    }
+    loc--;
+    globalStrValOfInt[loc] = '\0';
+    while (*origBuffLoc != ' ' && *origBuffLoc != '"' && *origBuffLoc != '\0')
+    {
+        origBuffLoc++;
+        lengthOfBuf++;
+    }
+    *counter = lengthOfBuf;
+    *counterNew = strlen(globalStrValOfInt);
+    closedir(dir);
+    return globalStrValOfInt;
+}
+
+int comparisionFunc(char * comparBuf, char * dirBuf)
+{
+    int lenOfBuff = strlen(comparBuf);
+    int lenOfDir = strlen(dirBuf);
+    int moveToLen = lenOfDir - lenOfBuff;
+    if (moveToLen < 0)
+    {
+        return (2);
+    }
+    if (*comparBuf == ' ' || *comparBuf == 0)
+    {
+        return(0);
+    }
+    while ((*comparBuf != 0 || *comparBuf != ' ') && dirBuf[moveToLen] != 0)
+    {
+        if (*comparBuf == '/')
+        {
+            printf("Error: / detected\n");
+        }
+        else if (*comparBuf == dirBuf[moveToLen])
+        {
+            comparBuf++;
+            moveToLen++;
+        }
+        if (*comparBuf == '"' && dirBuf[moveToLen] == 0)
+        {
+            return(0);
+        }
+        else if (*comparBuf != dirBuf[moveToLen])
+        {
+            return 1;
+        }
+    }
+    
+    if (*comparBuf == 0 && dirBuf[moveToLen] == 0)
+    {
+        return(0);
+    }
+    return(1);
+}
+
+/*
+int comparisionFunc(char * ptrToComp, char * ptrToBuf)
+{
+    bool matches = true;
+    
+    while (matches == true || *ptrToBuf != 0)
+    {
+        if (*ptrToComp == '*')
+        {
+            while (*ptrToComp == '*')
+            {
+                ptrToComp++;
+                if (*ptrToComp != '*')
+                {
+                    break;
+                }
+            }
+            while (*ptrToComp != *ptrToBuf)
+            {
+                ptrToBuf++;
+                if (*ptrToComp == *ptrToBuf)
+                {
+                    ptrToComp++;
+                }
+            }
+        }
+        else if(*ptrToBuf != 0 && *ptrToComp == 0)
+        {
+            printf("Match is false\n");
+            matches = false;
+            return(1);
+        }
+        else if (*ptrToComp == 0)
+        {
+            printf("Match is true\n");
+            return(0);
+        }
+        else if (*ptrToComp != *ptrToBuf)
+        {
+            printf("Match is false\n");
+            matches = false;
+            return(1);
+        }
+        else if (*ptrToComp == *ptrToBuf)
+        {
+            ptrToBuf++;
+            ptrToComp++;
+        }
+        
+        else
+        {
+            printf("error\n");
+        return(1);
+        }
+    }
+    
+    return(0);
+}
+*/
 /*
 char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
