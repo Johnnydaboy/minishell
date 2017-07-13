@@ -14,6 +14,7 @@
 bool normalExit = true;
 int whatInz;
 char globalStrValOfInt[1024];
+bool ranEnv = false;
 int findInz (char * orig, char * Inz);
 char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -23,20 +24,25 @@ char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter
 //bool match (const char *pattern, const char *candidate, int p, int c);
 //char **getResult(char *pattern, char *folderName, int *count);
 char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * wildCardFail (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 int comparisionFunc(char * comparBuf, char * dirBuf);
 // This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    int lenOfFuncArr = 7;
+    int lenOfFuncArr = 10;
     char *Inz[lenOfFuncArr];
     Inz[0] = "${";
     Inz[1] = "$$";
     Inz[2] = "$#";
     Inz[3] = "$?";
     Inz[4] = "$";
-    Inz[5] = "\"\"*";
-    Inz[6] = "*";
+    Inz[5] = "\\*";
+    Inz[6] = "**";
+    Inz[7] = "\"*";
+    Inz[8] = "\"\"*";
+    Inz[9] = "*";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -46,13 +52,16 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[2] = dollarSignPoundSign;
     funcInzArr[3] = dollarSignQuestionMark;
     funcInzArr[4] = dollarSignN;
-    funcInzArr[5] = wildCardExpand;
-    funcInzArr[6] = wildCardExpand;
+    funcInzArr[5] = wildCardPrint;
+    funcInzArr[6] = wildCardFail;
+    funcInzArr[7] = wildCardExpand;
+    funcInzArr[8] = wildCardExpand;
+    funcInzArr[9] = wildCardExpand;
     int lenOfParam = 0;
     
     // This while loop will continue to execute until the orig string reads at 0 
     while (orig[whereIsInz] != 0)
-    {  
+    {
         for (whatInz = 0; whatInz < lenOfFuncArr; whatInz++)
         {
             lenOfParam = 0;
@@ -65,7 +74,30 @@ int expand (char *orig, char *new, int newsize)
                 // counter (orig counter is inputC) is added to the original buffer in order to skip ahead what is found in findInz
                 // ^ (new counter is inputNew) same applies to counterNew but with newBuff rather
                 char * copyOver = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
+                                            //printf("whatInz is: %d\n", whatInz);
+                                            //printf("copyOver is: %s\n", copyOver);
                 // If it fail and no } is found it will print an error statement
+                
+                while (inputNew >= 1000)
+                {
+                    printf("CopyOver: %s\n", copyOver);
+                    whatInz = inputNew - 1000;
+                    printf("whatInz: %d\n", whatInz);
+                    int countForMe = 0;
+                    int quickCpy = strlen(copyOver);
+                    char * quickCpyStr = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
+                    printf("qcs = %s\n", quickCpyStr);
+                    int countDown = strlen(quickCpyStr);
+                    while (countDown != 0)
+                    {
+                        copyOver[quickCpy] = quickCpyStr[countForMe];
+                        quickCpy++;
+                        countForMe++;
+                        countDown--;
+                    }
+                }
+                
+                
                 if (inputNew == -1)
                 {
                     printf("${: No matching }\n");
@@ -83,13 +115,19 @@ int expand (char *orig, char *new, int newsize)
                     printf("Expand too big\n");
                     return 0; 
                 }
-                int i;
-                // the single character copy over that is given if a function is called
-                for (i = 0; i < inputNew; i++)
+                else
                 {
-                    *new = *copyOver;
-                    new++;
-                    copyOver++;
+                    int i;
+                    // the single character copy over that is given if a function is called
+                    for (i = 0; i < inputNew; i++)
+                    {
+                        *new = *copyOver;
+                        new++;
+                        copyOver++;
+                    }
+                                                //printf("%s\n", new);
+                    whatInz = 0;
+                    memcpy(orig, new, strlen(new));
                 }
             }
         }
@@ -145,7 +183,7 @@ char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, 
         }
     }
     
-    *origBuffLoc = 0;
+    *origBuffLoc = '\0';
     count++;
     *counter = count;
     
@@ -164,6 +202,7 @@ char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, 
     
     int much = strlen(envstr);
     *counterNew = much;
+    ranEnv = true;
     return envstr;
 }
 
@@ -181,7 +220,7 @@ char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, i
 {
     int argsHere = 0;
     //printf("%d\n", margc);
-    if (runFourFunctions == false)
+    if (margc == 1)
     {
         argsHere = margc;
         sprintf(globalStrValOfInt, "%d", argsHere);
@@ -197,106 +236,11 @@ char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, i
     return globalStrValOfInt;
 }
 
-char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
-{
-    int totalNum = 0;
-    int length = 0;
-    int locationInfo = 0;
-    bool isOver = false;
-    bool isNormal = true;
-    //printf("%s\n",*origBuffLoc);
-    if (*origBuffLoc == NULL || *origBuffLoc == ' ' )
-    {
-        printf("error here\n");
-        return NULL;
-    }
-    //This algorithm converts strings into ints using the ASCII table (look at reference from char and their decimal 
-    // numbers)
-    while (*origBuffLoc != ' ' && *origBuffLoc != 0)
-    {
-        if (*origBuffLoc >= '0' && *origBuffLoc <= '9')
-        {
-            totalNum = totalNum * 10 + *origBuffLoc - '0';
-        }
-        else
-        {
-            isNormal = false;
-        }
-        if (totalNum != 0 && totalNum > margc - (counterForShift + 1))
-        {
-            isOver = true;
-        }
-        length++;
-        origBuffLoc++;
-    } 
-    if (isNormal == false || isOver == true)
-    {
-        printf("n value exceeds corresponding argument\n");
-        *counter = length;
-        return NULL;
-    }
-    else if (totalNum == 0)
-    {
-        if (margc == 1)
-        {
-            memcpy(newBuff, margv[0], strlen(margv[0]));
-            *counter = length;
-            *counterNew = strlen(margv[0]);
-        }
-        else if (margc != 0)
-        {
-            memcpy(newBuff, margv[1], strlen(margv[1]));
-            *counter = length;
-            *counterNew = strlen(margv[1]);
-        }
-        //printf("here2\n");
-        return newBuff;
-    }
-    else if (totalNum != 0)
-    {
-        locationInfo = totalNum + 1 + counterForShift;
-        if (locationInfo == margc)
-        {
-            *counter = length;
-            return NULL;
-        }
-        memcpy(newBuff, margv[locationInfo], strlen(margv[locationInfo]));
-        *counter = length;
-        *counterNew = strlen(margv[locationInfo]);
-        return newBuff;
-    }
-    else
-    {
-        printf("Error: Something has occured\n");
-        return NULL;
-    }
-    return newBuff;
-}
-
-
 char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int envint;
-    /*
     if (normalExit == true)
     {
-        printf("hello working\n");
-    }
-    else if (normalExit == false)
-    {
-        printf("not working\n");
-    }
-    else
-    {
-        printf("I'm broken\n");
-    }
-    */
-    if (normalExit == true)
-    {
-        //printf("here\n");
-        //envint = getpid();
-        //sprintf(globalStrValOfInt,"%d", envint);
-        //printf("%d\n", valueForExit);
         sprintf(globalStrValOfInt, "%d", exitStatus);
         int cNew = strlen(globalStrValOfInt);
         *counterNew = cNew;
@@ -316,6 +260,145 @@ char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter
     *counterNew = cNew;
     return globalStrValOfInt;
 }
+
+
+
+
+
+
+
+
+char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    int totalNum = 0;
+    int length = 0;
+    int locationInfo = 0;
+    bool enterNum = false;
+    int locForGlobalValOfInt = 0; 
+    int tempArg = 0;
+    if (*origBuffLoc == '\0' || *origBuffLoc == ' ' )
+    {
+        printf("error here\n");
+        return NULL;
+    }
+    else if (*origBuffLoc == '{')
+    {
+        origBuffLoc++;
+        *counter = 2;
+        *counterNew = 1000;
+        return NULL;
+    }
+    //This algorithm converts strings into ints using the ASCII table (look at reference from char and their decimal 
+    // numbers)
+    while (*origBuffLoc >= '0' && *origBuffLoc <= '9')
+    {
+        enterNum = true;
+        totalNum = totalNum * 10 + *origBuffLoc - '0';
+        length++;
+        origBuffLoc++;
+    } 
+    if (enterNum == false)
+    {
+        globalStrValOfInt[locForGlobalValOfInt] = '\0';
+        return globalStrValOfInt;
+    }
+    if (totalNum == 0)
+    {
+        if (margc == 1)
+        {
+            char tempCpyMargv[1024];
+            char * ptrToTemp = tempCpyMargv;
+            int tempArgLen = strlen(margv[0]);
+            memcpy(tempCpyMargv, margv[0], strlen(margv[0]));
+            ptrToTemp[tempArgLen] = '\0';
+            while (ptrToTemp[tempArg] != '\0')
+            {
+                globalStrValOfInt[locForGlobalValOfInt] = ptrToTemp[tempArg];
+                tempArg++;
+                locForGlobalValOfInt++;
+            }
+            tempArg = 0;
+        }
+        else if (margc != 1)
+        {
+            char tempCpyMargv[1024];
+            char * ptrToTemp = tempCpyMargv;
+            int tempArgLen = strlen(margv[1]);
+            memcpy(tempCpyMargv, margv[1], strlen(margv[1]));
+            ptrToTemp[tempArgLen] = '\0';
+            while (ptrToTemp[tempArg] != '\0')
+            {
+                globalStrValOfInt[locForGlobalValOfInt] = ptrToTemp[tempArg];
+                tempArg++;
+                locForGlobalValOfInt++;
+            }
+            tempArg = 0;
+        }
+        globalStrValOfInt[locForGlobalValOfInt] = '\0';
+        *counter = length;
+        *counterNew = strlen(globalStrValOfInt);
+        return globalStrValOfInt;
+    }
+    else if (totalNum != 0)
+    {
+        locationInfo = totalNum + 1 + counterForShift;
+        
+        if (locationInfo >= margc)
+        {
+            while (*origBuffLoc != '\0')
+            {
+                globalStrValOfInt[locForGlobalValOfInt] = *origBuffLoc;
+                locForGlobalValOfInt++;
+                origBuffLoc++;
+                length++;
+            }
+            globalStrValOfInt[locForGlobalValOfInt] = '\0';
+            *counter = length;
+            *counterNew = strlen(globalStrValOfInt);
+            return globalStrValOfInt;
+        }
+        char tempCpyMargv[1024];
+        char * ptrToTemp = tempCpyMargv;
+        int tempArgLen = strlen(margv[locationInfo]);
+        memcpy(tempCpyMargv, margv[locationInfo], strlen(margv[locationInfo]));
+        ptrToTemp[tempArgLen] = '\0';
+        while (ptrToTemp[tempArg] != '\0')
+        {
+            globalStrValOfInt[locForGlobalValOfInt] = ptrToTemp[tempArg];
+            ptrToTemp++;
+            locForGlobalValOfInt++;
+        }
+        tempArg = 0;
+        
+        while (*origBuffLoc != '\0')
+        {
+            globalStrValOfInt[locForGlobalValOfInt] = *origBuffLoc;
+            locForGlobalValOfInt++;
+            origBuffLoc++;
+            length++;
+        }
+        globalStrValOfInt[locForGlobalValOfInt] = '\0';
+        *counter = length;
+        *counterNew = strlen(globalStrValOfInt);
+        return globalStrValOfInt;
+    }
+    else
+    {
+        printf("Error: Something has occured\n");
+        return NULL;
+    }
+    return globalStrValOfInt;
+}
+
+
+
+
+
+
+
+
+
+
 
 char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
@@ -337,7 +420,12 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
         printf ("Cannot open direcotry\n");
         return NULL;
     }
-    if (whatInz == 5)
+    if (whatInz == 7)
+    {
+        globalStrValOfInt[loc] = '"';
+        loc++;
+    }
+    if (whatInz == 8)
     {
         globalStrValOfInt[loc] = ' ';
         loc++;
@@ -404,6 +492,10 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
 {
     int lenOfBuff = strlen(comparBuf);
     int lenOfDir = strlen(dirBuf);
+    if (whatInz == 7)
+    {
+        lenOfBuff--;
+    }
     int moveToLen = lenOfDir - lenOfBuff;
     if (moveToLen < 0)
     {
@@ -413,18 +505,23 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
     {
         return(0);
     }
+    if (*comparBuf == '.')
+    {
+        return 1;
+    }
     while ((*comparBuf != 0 || *comparBuf != ' ') && dirBuf[moveToLen] != 0)
     {
         if (*comparBuf == '/')
         {
             printf("Error: / detected\n");
+            return 1;
         }
         else if (*comparBuf == dirBuf[moveToLen])
         {
             comparBuf++;
             moveToLen++;
         }
-        if (*comparBuf == '"' && dirBuf[moveToLen] == 0)
+        if (*comparBuf == '"' && dirBuf[moveToLen] == '\0')
         {
             return(0);
         }
@@ -433,7 +530,6 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
             return 1;
         }
     }
-    
     if (*comparBuf == 0 && dirBuf[moveToLen] == 0)
     {
         return(0);
@@ -441,141 +537,44 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
     return(1);
 }
 
-/*
-int comparisionFunc(char * ptrToComp, char * ptrToBuf)
+char * wildCardFail (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
-    bool matches = true;
-    
-    while (matches == true || *ptrToBuf != 0)
-    {
-        if (*ptrToComp == '*')
+        int loc = 0;
+        int lengthOfBuf = 0;
+        globalStrValOfInt[loc] = '*';
+        loc++;
+        globalStrValOfInt[loc] = '*';
+        loc++;
+        while (*origBuffLoc != ' ' && *origBuffLoc != '"' && *origBuffLoc != '\0')
         {
-            while (*ptrToComp == '*')
-            {
-                ptrToComp++;
-                if (*ptrToComp != '*')
-                {
-                    break;
-                }
-            }
-            while (*ptrToComp != *ptrToBuf)
-            {
-                ptrToBuf++;
-                if (*ptrToComp == *ptrToBuf)
-                {
-                    ptrToComp++;
-                }
-            }
+            globalStrValOfInt[loc] = *origBuffLoc;
+            origBuffLoc++;
+            lengthOfBuf++;
+            loc++;
         }
-        else if(*ptrToBuf != 0 && *ptrToComp == 0)
-        {
-            printf("Match is false\n");
-            matches = false;
-            return(1);
-        }
-        else if (*ptrToComp == 0)
-        {
-            printf("Match is true\n");
-            return(0);
-        }
-        else if (*ptrToComp != *ptrToBuf)
-        {
-            printf("Match is false\n");
-            matches = false;
-            return(1);
-        }
-        else if (*ptrToComp == *ptrToBuf)
-        {
-            ptrToBuf++;
-            ptrToComp++;
-        }
-        
-        else
-        {
-            printf("error\n");
-        return(1);
-        }
-    }
-    
-    return(0);
-}
-*/
-/*
-char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
-{
-    char cwd[199];
-    getcwd(cwd, sizeof(cwd));
-    char pattern[50];
-    int k = 0;
-    while (origBuffLoc != 0)
-    {
-        if (*origBuffLoc == ' ')
-        {
-            break;
-        }
-        else if (*origBuffLoc == '\"' && *(origBuffLoc + 1) == '\"')
-        {
-            break;
-        }
-        *(pattern+k) = *origBuffLoc;
-        origBuffLoc++;
-        k++;
-    }
-    *(pattern + k) = 0;
-    *counter = k;
-    int *count;
-    char **result = getResult(pattern, cwd, count);
-    int i;
-    for (i = 0; i < *count; i++)
-    {
-        strcpy(newBuff, result[i]);
-        newBuff = newBuff + strlen(result[i]);
-        *newBuff = ' ';
-        newBuff++;
-    }
-    *newBuff = 0;
-    *counterNew = strlen(newBuff);
-    return newBuff;
+        globalStrValOfInt[loc] = '\0';
+        *counter = lengthOfBuf;
+        *counterNew = strlen(globalStrValOfInt);
+        return globalStrValOfInt;
 }
 
-char **getResult(char *pattern, char *folderName, int *count)
+char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
-    DIR *dir;
-    struct dirent *ent;
-    if ((dir = opendir (folderName)) != NULL) 
-    {
-        // count how many string
-        int counter = 0;
-        while ((ent = readdir (dir)) != NULL) 
-        {
-            if (*pattern == 0)
-            {
-                counter++; 
-            }
-            else if ( match(pattern, ent->d_name, 0, 0) )
-            {
-                counter++;
-            }
-        }
-        char ** ptrToStrArr = (char** ) malloc(sizeof (char*) * counter);
-        
-        *count = counter;
-        counter = 0;
-        while ((ent = readdir (dir)) != NULL) 
-        {
-            if (*pattern == 0)
-            {
-                memcpy(ptrToStrArr[counter],ent->d_name, sizeof (ent->d_name)); 
-            }
-            else if ( match(pattern, ent->d_name, 0, 0) )
-            {
-                memcpy(ptrToStrArr[counter],ent->d_name, sizeof (ent->d_name));
-            }
-        }
-        closedir (dir);
-    
-        return ptrToStrArr;
-    } 
-    return NULL;
+    int loc = 0;
+    globalStrValOfInt[loc] = '*';
+    loc++;
+    globalStrValOfInt[loc] = '\0';
+    *counterNew = strlen(globalStrValOfInt);
+    return globalStrValOfInt;
+}
+
+/*
+char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    int envint = getppid();
+    sprintf(globalStrValOfInt,"%d", envint);
+    int cNew = strlen(globalStrValOfInt);
+    *counterNew = cNew;
+    return globalStrValOfInt;
 }
 */
