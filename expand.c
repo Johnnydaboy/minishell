@@ -13,8 +13,8 @@
 
 bool normalExit = true;
 int whatInz;
+int whatDollar;
 char globalStrValOfInt[1024];
-bool ranEnv = false;
 int findInz (char * orig, char * Inz);
 char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -31,7 +31,7 @@ int comparisionFunc(char * comparBuf, char * dirBuf);
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    int lenOfFuncArr = 10;
+    int lenOfFuncArr = 7;
     char *Inz[lenOfFuncArr];
     Inz[0] = "${";
     Inz[1] = "$$";
@@ -39,10 +39,10 @@ int expand (char *orig, char *new, int newsize)
     Inz[3] = "$?";
     Inz[4] = "$";
     Inz[5] = "\\*";
-    Inz[6] = "**";
-    Inz[7] = "\"*";
-    Inz[8] = "\"\"*";
-    Inz[9] = "*";
+    //Inz[6] = "**";
+    //Inz[7] = "\"*";
+    //Inz[8] = "\"\"*";
+    Inz[6] = "*";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -53,12 +53,11 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[3] = dollarSignQuestionMark;
     funcInzArr[4] = dollarSignN;
     funcInzArr[5] = wildCardPrint;
-    funcInzArr[6] = wildCardFail;
-    funcInzArr[7] = wildCardExpand;
-    funcInzArr[8] = wildCardExpand;
-    funcInzArr[9] = wildCardExpand;
+    //funcInzArr[6] = wildCardFail;
+    //funcInzArr[7] = wildCardExpand;
+    //funcInzArr[8] = wildCardExpand;
+    funcInzArr[6] = wildCardExpand;
     int lenOfParam = 0;
-    
     // This while loop will continue to execute until the orig string reads at 0 
     while (orig[whereIsInz] != 0)
     {
@@ -74,30 +73,7 @@ int expand (char *orig, char *new, int newsize)
                 // counter (orig counter is inputC) is added to the original buffer in order to skip ahead what is found in findInz
                 // ^ (new counter is inputNew) same applies to counterNew but with newBuff rather
                 char * copyOver = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
-                                            //printf("whatInz is: %d\n", whatInz);
-                                            //printf("copyOver is: %s\n", copyOver);
                 // If it fail and no } is found it will print an error statement
-                
-                while (inputNew >= 1000)
-                {
-                    printf("CopyOver: %s\n", copyOver);
-                    whatInz = inputNew - 1000;
-                    printf("whatInz: %d\n", whatInz);
-                    int countForMe = 0;
-                    int quickCpy = strlen(copyOver);
-                    char * quickCpyStr = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
-                    printf("qcs = %s\n", quickCpyStr);
-                    int countDown = strlen(quickCpyStr);
-                    while (countDown != 0)
-                    {
-                        copyOver[quickCpy] = quickCpyStr[countForMe];
-                        quickCpy++;
-                        countForMe++;
-                        countDown--;
-                    }
-                }
-                
-                
                 if (inputNew == -1)
                 {
                     printf("${: No matching }\n");
@@ -125,9 +101,8 @@ int expand (char *orig, char *new, int newsize)
                         new++;
                         copyOver++;
                     }
-                                                //printf("%s\n", new);
                     whatInz = 0;
-                    memcpy(orig, new, strlen(new));
+                    break;
                 }
             }
         }
@@ -147,7 +122,7 @@ int expand (char *orig, char *new, int newsize)
 int findInz (char * orig, char * Inz)
 {
     int counter = 0;
-    while (*Inz != 0)
+    while (*Inz != '\0')
     {
         if (*orig != *Inz)
         {
@@ -157,7 +132,7 @@ int findInz (char * orig, char * Inz)
         Inz++;
         counter++;
     }
-    if (*Inz == 0)
+    if (*Inz == '\0')
     {
         return counter;
     }
@@ -202,7 +177,6 @@ char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, 
     
     int much = strlen(envstr);
     *counterNew = much;
-    ranEnv = true;
     return envstr;
 }
 
@@ -219,7 +193,6 @@ char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, 
 char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int argsHere = 0;
-    //printf("%d\n", margc);
     if (margc == 1)
     {
         argsHere = margc;
@@ -279,13 +252,6 @@ char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * cou
     if (*origBuffLoc == '\0' || *origBuffLoc == ' ' )
     {
         printf("error here\n");
-        return NULL;
-    }
-    else if (*origBuffLoc == '{')
-    {
-        origBuffLoc++;
-        *counter = 2;
-        *counterNew = 1000;
         return NULL;
     }
     //This algorithm converts strings into ints using the ASCII table (look at reference from char and their decimal 
@@ -492,10 +458,14 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
 {
     int lenOfBuff = strlen(comparBuf);
     int lenOfDir = strlen(dirBuf);
+    
+    /*
     if (whatInz == 7)
     {
         lenOfBuff--;
     }
+    */
+    
     int moveToLen = lenOfDir - lenOfBuff;
     if (moveToLen < 0)
     {
@@ -537,6 +507,17 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
     return(1);
 }
 
+char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    int loc = 0;
+    globalStrValOfInt[loc] = '*';
+    loc++;
+    globalStrValOfInt[loc] = '\0';
+    *counterNew = strlen(globalStrValOfInt);
+    return globalStrValOfInt;
+}
+
+/*
 char * wildCardFail (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
         int loc = 0;
@@ -557,16 +538,7 @@ char * wildCardFail (char * origBuffLoc, char * newBuff, int * counter, int * co
         *counterNew = strlen(globalStrValOfInt);
         return globalStrValOfInt;
 }
-
-char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
-{
-    int loc = 0;
-    globalStrValOfInt[loc] = '*';
-    loc++;
-    globalStrValOfInt[loc] = '\0';
-    *counterNew = strlen(globalStrValOfInt);
-    return globalStrValOfInt;
-}
+*/
 
 /*
 char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
