@@ -156,6 +156,10 @@ int runFourFunctions (char *buffer, char *expandBuffer)
     if (successfulExpand != 0)
     {
         location = arg_parse(expandBuffer, &numOfArg);
+        if (location == NULL)
+        {
+            return 2;
+        }
     }        
     else if (successfulExpand == 0)
     {

@@ -198,6 +198,7 @@ char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, i
     {
         argsHere = margc - (counterForShift + 1);
     }
+    //printf("%d\n", argsHere);
     sprintf(globalStrValOfInt, "%d", argsHere);
     *counterNew = strlen(globalStrValOfInt);
     return globalStrValOfInt;
