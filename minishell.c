@@ -151,6 +151,7 @@ int runFourFunctions (char *buffer, char *expandBuffer)
     char ** location;
     int numOfArg = 0;
     int successfulExpand = expand(buffer, expandBuffer, LINELEN);
+    //printf("expandBuffer is: %s\n", expandBuffer);
     // Running arg_parse in order to return the arguments in a seperated string array format
     if (successfulExpand != 0)
     {
