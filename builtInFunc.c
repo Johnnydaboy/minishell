@@ -26,7 +26,7 @@ void chdirBuiltIn (char **line, int args);
 void shiftBuiltIn (char **line, int args);
 void unShiftBuiltIn (char **line, int numArgs);
 void sstat (char **line, int numArgs);
-void DisplayToConsole(char *filename);
+int DisplayToConsole(char *filename);
 
 
 // This compares the string at line[0] to the built in function program name in my builtIns array
@@ -269,16 +269,21 @@ void unShiftBuiltIn (char **line, int numArgs)
     }     
 }
 
-void DisplayToConsole(char *filename)
+int DisplayToConsole(char *filename)
 {
     struct stat fileStat;
-    stat(filename,&fileStat);
+    int fail = stat(filename,&fileStat);
+    if (fail == -1)
+    {
+        return 1;
+    }
+    //printf("fail is %d\n", fail);
     struct tm *info;
     struct passwd *pwd;
     struct group *grp;
     time_t get_mtime;
     char timeBuff[100];
-
+    printf("%s\t", filename);
     printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
     printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
     printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
@@ -301,17 +306,36 @@ void DisplayToConsole(char *filename)
     get_mtime = fileStat.st_mtime;
     info = localtime(&get_mtime);
     strftime(timeBuff, sizeof(timeBuff), "%d.%m.%Y %H:%M:%S", info);
-    printf("\t%s", timeBuff);
-    printf("\t%s\n", filename);
+    printf("\t%s\n", timeBuff);
+    return 0;
 }
 
 void sstat (char **line, int numArgs)
 {
+    int loopArgs = 0;
+    /*
     if (numArgs != 1)
     {
         printf("External error detected, please change number of variable to something applicable\n");
         return;
     }
-    DisplayToConsole(line[0]);
+    */
+    while (line[loopArgs] != '\0')
+    {
+        int successOrFail = DisplayToConsole(line[loopArgs]);
+        if (successOrFail == 1)
+        {
+            printf ("File or directory does not exist\n");
+        }
+        loopArgs++;
+    }
     return;
 }
+
+/*
+int fileExists (char *filename)
+{
+    struct stat fileStat;
+    return (stat (filename, &file))
+}
+*/
