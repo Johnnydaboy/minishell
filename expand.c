@@ -22,10 +22,7 @@ char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, 
 char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-//bool match (const char *pattern, const char *candidate, int p, int c);
-//char **getResult(char *pattern, char *folderName, int *count);
 char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-//char * wildCardFail (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 int comparisionFunc(char * comparBuf, char * dirBuf);
 // This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
@@ -40,9 +37,6 @@ int expand (char *orig, char *new, int newsize)
     Inz[3] = "$?";
     Inz[4] = "$";
     Inz[5] = "\\*";
-    //Inz[6] = "**";
-    //Inz[7] = "\"*";
-    //Inz[8] = "\"\"*";
     Inz[6] = "*";
     int whereIsInz = 0;
     int whereIsNew = 0;
@@ -54,9 +48,6 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[3] = dollarSignQuestionMark;
     funcInzArr[4] = dollarSignN;
     funcInzArr[5] = wildCardPrint;
-    //funcInzArr[6] = wildCardFail;
-    //funcInzArr[7] = wildCardExpand;
-    //funcInzArr[8] = wildCardExpand;
     funcInzArr[6] = wildCardExpand;
     int lenOfParam = 0;
     // This while loop will continue to execute until the orig string reads at 0 
@@ -359,16 +350,6 @@ char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * cou
     return globalStrValOfInt;
 }
 
-
-
-
-
-
-
-
-
-
-
 char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     struct dirent *Dirent;
@@ -583,36 +564,3 @@ char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * c
     return globalStrValOfInt;
 }
 
-/*
-char * wildCardFail (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
-{
-        int loc = 0;
-        int lengthOfBuf = 0;
-        globalStrValOfInt[loc] = '*';
-        loc++;
-        globalStrValOfInt[loc] = '*';
-        loc++;
-        while (*origBuffLoc != ' ' && *origBuffLoc != '"' && *origBuffLoc != '\0')
-        {
-            globalStrValOfInt[loc] = *origBuffLoc;
-            origBuffLoc++;
-            lengthOfBuf++;
-            loc++;
-        }
-        globalStrValOfInt[loc] = '\0';
-        *counter = lengthOfBuf;
-        *counterNew = strlen(globalStrValOfInt);
-        return globalStrValOfInt;
-}
-*/
-
-/*
-char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
-{
-    int envint = getppid();
-    sprintf(globalStrValOfInt,"%d", envint);
-    int cNew = strlen(globalStrValOfInt);
-    *counterNew = cNew;
-    return globalStrValOfInt;
-}
-*/
