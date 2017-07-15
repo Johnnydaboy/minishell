@@ -68,6 +68,7 @@ int expand (char *orig, char *new, int newsize)
                 // counter (orig counter is inputC) is added to the original buffer in order to skip ahead what is found in findInz
                 // ^ (new counter is inputNew) same applies to counterNew but with newBuff rather
                 char * copyOver = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
+                //printf("copyOver is: %s\n", copyOver);
                 // If it fail and no } is found it will print an error statement
                 if (inputNew == -1)
                 {
@@ -570,6 +571,28 @@ char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * c
 
 char * poundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
+    int lengthOfBuf = 0;
+    while (origBuffLoc[lengthOfBuf] != '\0' && origBuffLoc[lengthOfBuf] != '"')
+    {
+        lengthOfBuf++;
+    }
+    if (origBuffLoc[lengthOfBuf] == '"')
+    {
+        int len = 0;
+        globalStrValOfInt[len] = '#';
+        len++;
+        while (*origBuffLoc != '"')
+        {
+            globalStrValOfInt[len] = *origBuffLoc;
+            origBuffLoc++;
+            len++;
+        }
+        globalStrValOfInt[len] = '"';
+        len++;
+        *counter = lengthOfBuf + 1;
+        *counterNew = len;
+        return globalStrValOfInt;
+    }
     //printf("orifBuffLoc is %s\n", origBuffLoc);
     int length = 0;
     while (*origBuffLoc != '\0')
