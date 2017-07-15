@@ -24,12 +24,13 @@ char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * cou
 char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * poundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 int comparisionFunc(char * comparBuf, char * dirBuf);
 // This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    int lenOfFuncArr = 7;
+    int lenOfFuncArr = 8;
     char *Inz[lenOfFuncArr];
     Inz[0] = "${";
     Inz[1] = "$$";
@@ -38,6 +39,7 @@ int expand (char *orig, char *new, int newsize)
     Inz[4] = "$";
     Inz[5] = "\\*";
     Inz[6] = "*";
+    Inz[7] = "#";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -49,6 +51,7 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[4] = dollarSignN;
     funcInzArr[5] = wildCardPrint;
     funcInzArr[6] = wildCardExpand;
+    funcInzArr[7] = poundSign;
     int lenOfParam = 0;
     // This while loop will continue to execute until the orig string reads at 0 
     while (orig[whereIsInz] != 0)
@@ -565,3 +568,15 @@ char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * c
     return globalStrValOfInt;
 }
 
+char * poundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    //printf("orifBuffLoc is %s\n", origBuffLoc);
+    int length = 0;
+    while (*origBuffLoc != '\0')
+    {
+        origBuffLoc++;
+        length++;
+    }
+    *counter = length;
+    return NULL;
+}
