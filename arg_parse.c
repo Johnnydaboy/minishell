@@ -117,7 +117,7 @@ char ** arg_parse (char *line, int *argcp)
             {
                 if (inQuote == false)
                 {
-                    *ptr1 = 0;
+                    *ptr1 = '\0';
                     inArg = false;
                 }
             }

@@ -15,6 +15,7 @@
 int margc;
 char **margv;
 int exitStatus;
+char prompt[1024];
 
 /* Prototypes */
 void processline (char **line);
@@ -45,7 +46,14 @@ int main(int mainargc, char **mainargv)
         {
 
             /* prompt and get line */
-            fprintf (stderr, "%% ");
+            if (prompt[0] == '\0')
+            {
+                fprintf (stderr, "%% ");
+            }
+            else
+            {
+                fprintf (stderr, prompt);
+            }
             if (fgets (buffer, LINELEN, stdin) != buffer){
                 break;
             }

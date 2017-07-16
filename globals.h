@@ -6,3 +6,4 @@ extern int counterTillZero;
 extern bool enterShift;
 extern bool normalExit;
 extern int exitStatus;
+extern char prompt[1024];

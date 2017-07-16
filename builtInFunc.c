@@ -153,7 +153,16 @@ void envsetBuiltIn (char **line, int numArgs)
         printf("Error: Invalid number of arguments for envset\n");
         return;
     }
-    
+    int comparison = strcmp(line[0], "P1");
+    //printf ("Comparison is %d\n", comparison);
+    //printf ("line at one is: %s\n", line[1]);
+    //printf ("line at zero is: %s\n", line[1]);
+    if (comparison == 0)
+    {
+        int lenOfPrompt = strlen(line[1]);
+        memcpy(prompt, line[1], lenOfPrompt);
+        prompt[lenOfPrompt + 1] = '\0';
+    }
     setenv(line[0], line[1], 1);
 }
 
