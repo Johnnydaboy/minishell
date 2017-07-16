@@ -150,6 +150,24 @@ int runFourFunctions (char *buffer, char *expandBuffer)
 {
     char ** location;
     int numOfArg = 0;
+    int checkForPoundSign = 0;
+    bool inQuote = false;
+    while (buffer[checkForPoundSign] != '\0')
+    {
+        if (buffer[checkForPoundSign] == '#' && inQuote == false)
+        {
+            buffer[checkForPoundSign] = '\0';
+        }
+        if (buffer[checkForPoundSign] == '"' && inQuote == false)
+        {
+            inQuote = true;
+        }
+        else if (buffer[checkForPoundSign] == '"' && inQuote == true)
+        {
+            inQuote = false;
+        }
+        checkForPoundSign++;
+    }
     int successfulExpand = expand(buffer, expandBuffer, LINELEN);
     //printf("expandBuffer is: %s\n", expandBuffer);
     // Running arg_parse in order to return the arguments in a seperated string array format
