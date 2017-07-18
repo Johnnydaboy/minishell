@@ -147,23 +147,57 @@ void aechoBuiltIn (char **line, int numArgs)
 // Another built in command the third to be percise, sets environment variables
 void envsetBuiltIn (char **line, int numArgs)
 {
+    /*
     if (numArgs != 2)
     {
         normalExit = false;
         printf("Error: Invalid number of arguments for envset\n");
         return;
     }
+    */
+    /*
+    while (line != '\0')
+    {
+        printf("%s\n", *line);
+        line++;
+    }
+    */
     int comparison = strcmp(line[0], "P1");
     //printf ("Comparison is %d\n", comparison);
     //printf ("line at one is: %s\n", line[1]);
     //printf ("line at zero is: %s\n", line[1]);
+    
+    int envCpy = 1;
+    int len = 0;
+    char envStr[1024];
+    char tempLine[1024];
+    while (envCpy != numArgs)
+    {
+        //int length = strlen(line[envCpy]);
+        //memcpy(tempLine, line[envCpy], length);
+        strcpy(tempLine, line[envCpy]);
+        int len1 = 0;
+        while (tempLine[len1] != '\0')
+        {
+            envStr[len] = tempLine[len1];
+            len1++;
+            len++;
+        }
+        envStr[len] = ' ';
+        len++;
+        envCpy++;
+        //printf("%s\n", line[envCpy]);
+        //printf("%s\n", tempLine);
+    }
+    len--;
+    envStr[len] = '\0';
+    
     if (comparison == 0)
     {
-        int lenOfPrompt = strlen(line[1]);
-        memcpy(prompt, line[1], lenOfPrompt);
-        prompt[lenOfPrompt + 1] = '\0';
+        int lenOfPrompt = strlen(envStr);
+        memcpy(prompt, envStr, lenOfPrompt);
     }
-    setenv(line[0], line[1], 1);
+    setenv(line[0], envStr, 1);
 }
 
 // The fourth built in function unsets variables that have been set

@@ -6,9 +6,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdbool.h>
-#include "proto.h"
 #include <dirent.h>
 
+#include "proto.h"
 #include "globals.h"
 
 bool normalExit = true;

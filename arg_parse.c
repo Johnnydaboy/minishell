@@ -126,7 +126,7 @@ char ** arg_parse (char *line, int *argcp)
         }
     }
     *ptr1 = *ptr2;
-    ptrToStrArr[ptrToStrArrCounter] = NULL;
+    ptrToStrArr[ptrToStrArrCounter] = '\0';
     
     return ptrToStrArr;
 }
