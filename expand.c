@@ -7,6 +7,11 @@
 #include <sys/wait.h>
 #include <stdbool.h>
 #include <dirent.h>
+#include <sys/types.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include "proto.h"
 #include "globals.h"
@@ -26,11 +31,12 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
 char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * poundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 int comparisionFunc(char * comparBuf, char * dirBuf);
+char * tilde (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 // This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    int lenOfFuncArr = 7;
+    int lenOfFuncArr = 8;
     char *Inz[lenOfFuncArr];
     Inz[0] = "${";
     Inz[1] = "$$";
@@ -39,6 +45,7 @@ int expand (char *orig, char *new, int newsize)
     Inz[4] = "$";
     Inz[5] = "\\*";
     Inz[6] = "*";
+    Inz[7] = "~";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -50,6 +57,7 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[4] = dollarSignN;
     funcInzArr[5] = wildCardPrint;
     funcInzArr[6] = wildCardExpand;
+    funcInzArr[7] = tilde;
     int lenOfParam = 0;
     // This while loop will continue to execute until the orig string reads at 0 
     while (orig[whereIsInz] != 0)
@@ -566,3 +574,75 @@ char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * c
     *counterNew = strlen(globalStrValOfInt);
     return globalStrValOfInt;
 }
+
+char * tilde (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    struct passwd *pwd;
+    //struct passwd *pwdp;
+    char buf[1024];
+    char * ptrToBuf = buf;
+    int loc = 0;
+    int counterOld = 0;
+    char buffer[1024];
+    char * ptrToBuffer = buffer;
+    if (*origBuffLoc == ' ' || *origBuffLoc == '\0' \\ '\')
+    {
+        pwd = getpwuid(getuid());
+        strcpy(buf, pwd->pw_dir);
+        int counterf = 0;
+        while(ptrToBuf[counterf] != '\0')
+        {
+            globalStrValOfInt[counterf] = ptrToBuf[counterf];
+            counterf++;
+        }
+        while(*origBuffLoc != ' ' && *origBuffLoc != '\0')
+        {
+            globalStrValOfInt[counterf] = *origBuffLoc;
+            counterf++;
+            origBuffLoc++;
+        }
+        globalStrValOfInt[counterf] = '\0';
+        *counterNew = strlen(globalStrValOfInt);
+        return globalStrValOfInt;
+    }
+    while (*origBuffLoc != ' ' && *origBuffLoc != '\0' && *origBuffLoc != '/')
+    {
+        ptrToBuffer[loc] = *origBuffLoc;
+        counterOld++;
+        loc++;
+        origBuffLoc++;
+    }
+    ptrToBuffer[loc] = '\0';
+    //printf("%s\n", buffer);
+    /*
+    if(getpwnam_r(buffer, &pwd, buf, sizeof buf, &pwdp))
+    {
+        printf("Error file does not exist\n");
+        return NULL;
+    }
+    else
+    {
+        memcpy(globalStrValOfInt, pwd.pw_dir, strlen(pwd.pw_dir));
+    }
+    */
+    pwd = getpwnam(buffer);
+    strcpy(buf, pwd->pw_dir);
+    int ctrForBuf = 0;
+    while(ptrToBuf[ctrForBuf] != '\0')
+    {
+        globalStrValOfInt[ctrForBuf] = ptrToBuf[ctrForBuf];
+        ctrForBuf++;
+    }
+    while(*origBuffLoc != ' ' && *origBuffLoc != '\0')
+    {
+        globalStrValOfInt[counterf] = *origBuffLoc;
+        counterf++;
+        origBuffLoc++;
+    }
+    globalStrValOfInt[ctrForBuf] = '\0';
+    *counter = counterOld;
+    //printf("%s\n", globalStrValOfInt);
+    *counterNew = strlen(globalStrValOfInt);
+    return globalStrValOfInt;
+}
+

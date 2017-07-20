@@ -126,8 +126,16 @@ char ** arg_parse (char *line, int *argcp)
         }
     }
     *ptr1 = *ptr2;
-    ptrToStrArr[ptrToStrArrCounter] = '\0';
+    ptrToStrArr[ptrToStrArrCounter] = 0;
     
+    /*
+    while (*ptrToStrArr != 0)
+    {
+        printf("%s\n", *ptrToStrArr);
+        ptrToStrArr++;
+    }
+    ptrToStrArr = ptrToStrArr - ptrToStrArrCounter;
+    */
     return ptrToStrArr;
 }
 
