@@ -578,18 +578,33 @@ char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * c
 char * tilde (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     struct passwd *pwd;
-    //struct passwd *pwdp;
     char buf[1024];
     char * ptrToBuf = buf;
     int loc = 0;
     int counterOld = 0;
     char buffer[1024];
+    int counterf = 0;
     char * ptrToBuffer = buffer;
-    if (*origBuffLoc == ' ' || *origBuffLoc == '\0' \\ '\')
+    if (*origBuffLoc == '~')
+    {
+        globalStrValOfInt[counterf] = '~';
+        counterf++;
+        while(*origBuffLoc != ' ' && *origBuffLoc != '\0')
+        {
+            globalStrValOfInt[counterf] = *origBuffLoc;
+            counterf++;
+            origBuffLoc++;
+            counterOld++;
+        }
+        globalStrValOfInt[counterf] = '\0';
+        *counter = counterOld;
+        *counterNew = strlen(globalStrValOfInt);
+        return globalStrValOfInt;
+    }
+    if (*origBuffLoc == ' ' || *origBuffLoc == '\0' || *origBuffLoc == '/' || *origBuffLoc == '~')
     {
         pwd = getpwuid(getuid());
         strcpy(buf, pwd->pw_dir);
-        int counterf = 0;
         while(ptrToBuf[counterf] != '\0')
         {
             globalStrValOfInt[counterf] = ptrToBuf[counterf];
@@ -600,31 +615,44 @@ char * tilde (char * origBuffLoc, char * newBuff, int * counter, int * counterNe
             globalStrValOfInt[counterf] = *origBuffLoc;
             counterf++;
             origBuffLoc++;
+            counterOld++;
         }
         globalStrValOfInt[counterf] = '\0';
+        *counter = counterOld;
         *counterNew = strlen(globalStrValOfInt);
         return globalStrValOfInt;
     }
-    while (*origBuffLoc != ' ' && *origBuffLoc != '\0' && *origBuffLoc != '/')
+    while (*origBuffLoc != ' ' && *origBuffLoc != '\0' && *origBuffLoc != '/' && *origBuffLoc != '~')
     {
         ptrToBuffer[loc] = *origBuffLoc;
         counterOld++;
         loc++;
         origBuffLoc++;
     }
+    if (*origBuffLoc == '~')
+    {
+        int countera = 0;
+        globalStrValOfInt[counterf] = '~';
+        counterf++;
+        while(ptrToBuffer[countera] != '\0')
+        {
+            globalStrValOfInt[counterf] = ptrToBuffer[countera];
+            counterf++;
+            countera++;
+        }
+        while(*origBuffLoc != ' ' && *origBuffLoc != '\0')
+        {
+            globalStrValOfInt[counterf] = *origBuffLoc;
+            counterf++;
+            origBuffLoc++;
+            counterOld++;
+        }
+        globalStrValOfInt[counterf] = '\0';
+        *counter = counterOld;
+        *counterNew = strlen(globalStrValOfInt);
+        return globalStrValOfInt;
+    }
     ptrToBuffer[loc] = '\0';
-    //printf("%s\n", buffer);
-    /*
-    if(getpwnam_r(buffer, &pwd, buf, sizeof buf, &pwdp))
-    {
-        printf("Error file does not exist\n");
-        return NULL;
-    }
-    else
-    {
-        memcpy(globalStrValOfInt, pwd.pw_dir, strlen(pwd.pw_dir));
-    }
-    */
     pwd = getpwnam(buffer);
     strcpy(buf, pwd->pw_dir);
     int ctrForBuf = 0;
@@ -635,9 +663,10 @@ char * tilde (char * origBuffLoc, char * newBuff, int * counter, int * counterNe
     }
     while(*origBuffLoc != ' ' && *origBuffLoc != '\0')
     {
-        globalStrValOfInt[counterf] = *origBuffLoc;
-        counterf++;
+        globalStrValOfInt[ctrForBuf] = *origBuffLoc;
+        ctrForBuf++;
         origBuffLoc++;
+        counterOld++;
     }
     globalStrValOfInt[ctrForBuf] = '\0';
     *counter = counterOld;
