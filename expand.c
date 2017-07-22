@@ -32,11 +32,12 @@ char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * c
 char * poundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 int comparisionFunc(char * comparBuf, char * dirBuf);
 char * tilde (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * dollarSignBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 // This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    int lenOfFuncArr = 8;
+    int lenOfFuncArr = 9;
     char *Inz[lenOfFuncArr];
     Inz[0] = "${";
     Inz[1] = "$$";
@@ -46,6 +47,7 @@ int expand (char *orig, char *new, int newsize)
     Inz[5] = "\\*";
     Inz[6] = "*";
     Inz[7] = "~";
+    Inz[8] = "$(";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -58,6 +60,7 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[5] = wildCardPrint;
     funcInzArr[6] = wildCardExpand;
     funcInzArr[7] = tilde;
+    funcInzArr[8] = dollarSignBrace;
     int lenOfParam = 0;
     // This while loop will continue to execute until the orig string reads at 0 
     while (orig[whereIsInz] != 0)
