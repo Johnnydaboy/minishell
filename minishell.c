@@ -18,8 +18,8 @@ int exitStatus;
 char prompt[1024];
 
 /* Prototypes */
-void processline (char **line);
-int runFourFunctions (char *buffer, char *expandBuffer);
+void forkProcess (char **line);
+int processLine (char *buffer, char *expandBuffer);
 
 /* Shell main */
 int main(int mainargc, char **mainargv)
@@ -54,24 +54,27 @@ int main(int mainargc, char **mainargv)
             {
                 fprintf (stderr, prompt);
             }
-            if (fgets (buffer, LINELEN, stdin) != buffer){
+            if (fgets (buffer, LINELEN, stdin) != buffer)
+            {
                 break;
             }
             
             /* Get rid of \n at end of buffer. */
             len = strlen(buffer);
-            if (buffer[len-1] == '\n'){
+            if (buffer[len-1] == '\n')
+            {
                 buffer[len-1] = 0;
             }
             
-            functional = runFourFunctions (buffer, expandBuffer);
+            functional = processLine (buffer, expandBuffer);
             if (functional == 1)
             {
                 continue;
             }
         }
 
-        if (!feof(stdin)) {
+        if (!feof(stdin)) 
+        {
             perror ("read");
         }
     }
@@ -96,7 +99,7 @@ int main(int mainargc, char **mainargv)
             else if (*buffptr1 == '\n')
             {  
                 *buffptr1 = 0;
-                functional = runFourFunctions(buffer, expandBuffer);
+                functional = processLine(buffer, expandBuffer);
                 *buffptr1 = '\n';
                 if (functional == 1)
                 {
@@ -111,7 +114,7 @@ int main(int mainargc, char **mainargv)
         }
         if (*buffptr1 == 0)
         {
-            functional = runFourFunctions(buffer, expandBuffer);
+            functional = processLine(buffer, expandBuffer);
             if (functional == 1)
             {
                 printf("Error \n");
@@ -123,7 +126,7 @@ int main(int mainargc, char **mainargv)
 }
 
 // Runs a library program if a built in command wasn't called
-void processline (char **line)
+void forkProcess (char **line)
 {
     pid_t  cpid;
     int status;
@@ -154,7 +157,7 @@ void processline (char **line)
     }
 }
 
-int runFourFunctions (char *buffer, char *expandBuffer)
+int processLine (char *buffer, char *expandBuffer)
 {
     char ** location;
     int numOfArg = 0;
@@ -211,7 +214,7 @@ int runFourFunctions (char *buffer, char *expandBuffer)
         // This makes sure that processline doesn't run if a built in function was called
         if (runProLine == false)
         {
-            processline (location);
+            forkProcess (location);
         }
     }
     
