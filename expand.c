@@ -681,18 +681,51 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
 
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
-    while (*origBuffLoc != "\0")
-    {
-        if (*origBuffLoc == ')')
-    }
+    int matchingBrace = 1;
+    char cmdExpandBuf[1024];
+    char ecmdExpandBuf[1024];
     int fileDescriptors[2];
-    if (pipe(fileDescriptors) == -1)
+    char * ptrTocmdExpandBuf = cmdExpandBuf;
+    int ctrForcmdExp = 0;
+    while (*origBuffLoc != '\0' || matchingBrace < 1)
+    {
+        ptrTocmdExpandBuf[ctrForcmdExp] = *origBuffLoc;
+        if (*origBuffLoc == '(')
+        {
+            matchingBrace++;
+        }
+        else if (*origBuffLoc == ')' && matchingBrace == 1)
+        {
+            int functional;
+            *origBuffLoc = '\0';
+            if (pipe(fileDescriptors) == -1)
+            {
+                printf("Error\n");
+            }
+            functional = processLine(cmdExpandBuf, ecmdExpandBuf, fileDescriptors);
+            if (functional == 1)
+            {
+                printf("Error \n");
+            }
+        }
+        else if (*origBuffLoc == ')')
+        {
+            matchingBrace--;
+        }
+        origBuffLoc++;
+    }
+    if (matchingBrace != 1)
+    {
+        printf("Matching parentheses not found\n");
+        return NULL;
+    }
+    /*
+    if (pipe(fd) == -1)
     {
         printf("Error");
     }
-
-
-
+    */
+    return globalStrValOfInt;
 }
 
 

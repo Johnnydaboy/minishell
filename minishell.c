@@ -18,8 +18,8 @@ int exitStatus;
 char prompt[1024];
 
 /* Prototypes */
-void forkProcess (char **line, int fd);
-int processLine (char *buffer, char *expandBuffer, int fd);
+void forkProcess (char **line, int fd[]);
+int processLine (char *buffer, char *expandBuffer, int fd[]);
 
 /* Shell main */
 int main(int mainargc, char **mainargv)
@@ -32,6 +32,7 @@ int main(int mainargc, char **mainargv)
     int functional; 
     margc = mainargc;
     margv = mainargv;
+    int arr[2];
     //printf("%d\n",margc);
     //printf("%d\n",margv[0]);
     /*while (*margv != 0){
@@ -66,7 +67,7 @@ int main(int mainargc, char **mainargv)
                 buffer[len-1] = 0;
             }
             
-            functional = processLine (buffer, expandBuffer);
+            functional = processLine (buffer, expandBuffer, arr);
             if (functional == 1)
             {
                 continue;
@@ -99,7 +100,7 @@ int main(int mainargc, char **mainargv)
             else if (*buffptr1 == '\n')
             {  
                 *buffptr1 = 0;
-                functional = processLine(buffer, expandBuffer);
+                functional = processLine(buffer, expandBuffer, arr);
                 *buffptr1 = '\n';
                 if (functional == 1)
                 {
@@ -114,7 +115,7 @@ int main(int mainargc, char **mainargv)
         }
         if (*buffptr1 == 0)
         {
-            functional = processLine(buffer, expandBuffer);
+            functional = processLine(buffer, expandBuffer, arr);
             if (functional == 1)
             {
                 printf("Error \n");
@@ -126,7 +127,7 @@ int main(int mainargc, char **mainargv)
 }
 
 // Runs a library program if a built in command wasn't called
-void forkProcess (char **line, int fd)
+void forkProcess (char **line, int fd[])
 {
     pid_t  cpid;
     int status;
@@ -157,7 +158,7 @@ void forkProcess (char **line, int fd)
     }
 }
 
-int processLine (char *buffer, char *expandBuffer, int fd)
+int processLine (char *buffer, char *expandBuffer, int fd[])
 {
     char ** location;
     int numOfArg = 0;
@@ -200,7 +201,7 @@ int processLine (char *buffer, char *expandBuffer, int fd)
     // Kinda unneccesary but check to make sure that the process won't run if nothing is given to arg_parse
     if (numOfArg != 1)
     {           
-        runProLine = builtInFunc(location, numOfArg, );
+        runProLine = builtInFunc(location, numOfArg, fd);
     }
     else
     {
@@ -214,7 +215,7 @@ int processLine (char *buffer, char *expandBuffer, int fd)
         // This makes sure that processline doesn't run if a built in function was called
         if (runProLine == false)
         {
-            forkProcess (location);
+            forkProcess (location, fd);
         }
     }
     

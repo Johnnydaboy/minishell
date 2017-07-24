@@ -31,7 +31,7 @@ int DisplayToConsole(char *filename);
 
 // This compares the string at line[0] to the built in function program name in my builtIns array
 // It has a return type of bool in order to make sure processline doesnt run
-bool builtInFunc (char **line, int args)
+bool builtInFunc (char **line, int args, int * fd)
 {
     int n = 8;
     char *builtIns[n];
@@ -116,16 +116,14 @@ void aechoBuiltIn (char **line, int numArgs)
             {
                 lenOfStrLen = strlen(line[counterb]);
                 snprintf(bufferForWrite, lenOfStrLen + 1, "%s", line[counterb]);
-                write(1, bufferForWrite, lenOfStrLen);
-                fflush(stdout);
+                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen);
                 finish = true;
             }
             else if (line[counterb] != 0)
             {
                 lenOfStrLen = strlen(line[counterb]);
                 snprintf(bufferForWrite, lenOfStrLen + 2, "%s ", line[counterb]);
-                write(1, bufferForWrite, lenOfStrLen + 1);
-                fflush(stdout);
+                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
                 counterb++;
             }
         }
@@ -212,7 +210,7 @@ void envsetBuiltIn (char **line, int numArgs)
 
 // The fourth built in function unsets variables that have been set
 void envunsetBuiltIn (char **line, int numArgs)
-{daemons
+{
     if (numArgs != 1)
     {
         normalExit = false;
@@ -322,10 +320,15 @@ void unShiftBuiltIn (char **line, int numArgs)
     }     
 }
 
-void DisplayToConsole(char *filename)
+int DisplayToConsole(char *filename)
 {
     struct stat fileStat;
-    stat(filename,&fileStat);
+    int fail = stat(filename,&fileStat);
+    if (fail == -1)
+    {
+        return 1;
+    }
+    //printf("fail is %d\n", fail);
     struct tm *info;
     struct passwd *pwd;
     struct group *grp;
@@ -383,6 +386,7 @@ void DisplayToConsole(char *filename)
     lenOfStrLen = strlen(timeBuff);
     snprintf(bufferForWrite, lenOfStrLen + 3, "\t%s\n", timeBuff);
     write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 2);
+    return 0;
 }
 
 void sstat (char **line, int numArgs)
