@@ -22,17 +22,17 @@ int whatDollar;
 char globalStrValOfInt[1024];
 int findInz (char * orig, char * Inz);
 bool isQuote;
-char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * expandPid (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * poundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+//char * poundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 int comparisionFunc(char * comparBuf, char * dirBuf);
-char * tilde (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-//char * dollarSignBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 // This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
@@ -47,20 +47,20 @@ int expand (char *orig, char *new, int newsize)
     Inz[5] = "\\*";
     Inz[6] = "*";
     Inz[7] = "~";
-    //Inz[8] = "$(";
+    Inz[8] = "$(";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
     funcInz funcInzArr[lenOfFuncArr];
-    funcInzArr[0] = dollarSignCurlyBrace;
-    funcInzArr[1] = dollarSignDollarSign;
-    funcInzArr[2] = dollarSignPoundSign;
-    funcInzArr[3] = dollarSignQuestionMark;
-    funcInzArr[4] = dollarSignN;
+    funcInzArr[0] = expandEnvVar;
+    funcInzArr[1] = expandPid;
+    funcInzArr[2] = expandNumArgs;
+    funcInzArr[3] = expandProcessId;
+    funcInzArr[4] = expandLocOfArg;
     funcInzArr[5] = wildCardPrint;
     funcInzArr[6] = wildCardExpand;
-    funcInzArr[7] = tilde;
-    //funcInzArr[8] = dollarSignBrace;
+    funcInzArr[7] = expandHomeDir;
+    funcInzArr[8] = commandExpansion;
     int lenOfParam = 0;
     // This while loop will continue to execute until the orig string reads at 0 
     while (orig[whereIsInz] != 0)
@@ -147,7 +147,7 @@ int findInz (char * orig, char * Inz)
 }
 
 // This is the first expand subfunction which does and expand to ${} 
-char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     char * ptr2temp;
     int count = 0;
@@ -188,7 +188,7 @@ char * dollarSignCurlyBrace (char * origBuffLoc, char * newBuff, int * counter, 
 }
 
 // The second expand subfunction which expands the $$ environment
-char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+char * expandPid (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int envint = getppid();
     sprintf(globalStrValOfInt,"%d", envint);
@@ -197,7 +197,7 @@ char * dollarSignDollarSign (char * origBuffLoc, char * newBuff, int * counter, 
     return globalStrValOfInt;
 }
 
-char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int argsHere = 0;
     if (margc == 1)
@@ -217,7 +217,7 @@ char * dollarSignPoundSign (char * origBuffLoc, char * newBuff, int * counter, i
     return globalStrValOfInt;
 }
 
-char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int envint;
     if (normalExit == true)
@@ -249,7 +249,7 @@ char * dollarSignQuestionMark (char * origBuffLoc, char * newBuff, int * counter
 
 
 
-char * dollarSignN (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int totalNum = 0;
     int length = 0;
@@ -578,7 +578,7 @@ char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * c
     return globalStrValOfInt;
 }
 
-char * tilde (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     struct passwd *pwd;
     char buf[1024];
@@ -678,16 +678,16 @@ char * tilde (char * origBuffLoc, char * newBuff, int * counter, int * counterNe
     return globalStrValOfInt;
 }
 
-/*
-char * dollarSignBrace (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
-{
 
+char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    int fileDescriptors[2];
 
 
 
 
 }
-*/
+
 
 
 

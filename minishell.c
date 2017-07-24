@@ -18,8 +18,8 @@ int exitStatus;
 char prompt[1024];
 
 /* Prototypes */
-void forkProcess (char **line);
-int processLine (char *buffer, char *expandBuffer);
+void forkProcess (char **line, int fd);
+int processLine (char *buffer, char *expandBuffer, int fd);
 
 /* Shell main */
 int main(int mainargc, char **mainargv)
@@ -126,7 +126,7 @@ int main(int mainargc, char **mainargv)
 }
 
 // Runs a library program if a built in command wasn't called
-void forkProcess (char **line)
+void forkProcess (char **line, int fd)
 {
     pid_t  cpid;
     int status;
@@ -157,7 +157,7 @@ void forkProcess (char **line)
     }
 }
 
-int processLine (char *buffer, char *expandBuffer)
+int processLine (char *buffer, char *expandBuffer, int fd)
 {
     char ** location;
     int numOfArg = 0;
