@@ -98,6 +98,8 @@ void aechoBuiltIn (char **line, int numArgs)
     int counter = 0;
     int counterb = 1;
     bool finish = false;
+    char bufferForWrite[1024];
+    int lenOfStrLen = 0;
     
     if (numArgs == 0)
     {
@@ -112,13 +114,17 @@ void aechoBuiltIn (char **line, int numArgs)
         {
             if (line[counterb + 1] == 0)
             {
-                printf("%s", line[counterb]);
+                lenOfStrLen = strlen(line[counterb]);
+                snprintf(bufferForWrite, lenOfStrLen + 1, "%s", line[counterb]);
+                write(1, bufferForWrite, lenOfStrLen);
                 fflush(stdout);
                 finish = true;
             }
             else if (line[counterb] != 0)
             {
-                printf("%s ", line[counterb]);
+                lenOfStrLen = strlen(line[counterb]);
+                snprintf(bufferForWrite, lenOfStrLen + 2, "%s ", line[counterb]);
+                write(1, bufferForWrite, lenOfStrLen + 1);
                 fflush(stdout);
                 counterb++;
             }
@@ -130,17 +136,21 @@ void aechoBuiltIn (char **line, int numArgs)
     {
         while (finish == false)
         {
-            if (line[counter] == 0)
+            if (line[counter] == '\0')
             {
-                printf("\n ");
+                snprintf(bufferForWrite, 2, "\n ");
+                write(STDOUT_FILENO, bufferForWrite, 2);
                 finish = true;
             }
             else
             {
-                printf("%s ", line[counter]);
+                lenOfStrLen = strlen(line[counter]);
+                snprintf(bufferForWrite, lenOfStrLen + 2, "%s ", line[counter]);
+                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
                 counter++;
             }
         }
+        
     }    
 }
 
@@ -202,7 +212,7 @@ void envsetBuiltIn (char **line, int numArgs)
 
 // The fourth built in function unsets variables that have been set
 void envunsetBuiltIn (char **line, int numArgs)
-{
+{daemons
     if (numArgs != 1)
     {
         normalExit = false;

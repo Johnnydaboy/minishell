@@ -681,8 +681,12 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
 
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
+    while (*origBuffLoc != "\0")
     int fileDescriptors[2];
-
+    if (pipe(fileDescriptors) == -1)
+    {
+        printf("Error");
+    }
 
 
 

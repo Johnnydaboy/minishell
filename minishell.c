@@ -200,7 +200,7 @@ int processLine (char *buffer, char *expandBuffer, int fd)
     // Kinda unneccesary but check to make sure that the process won't run if nothing is given to arg_parse
     if (numOfArg != 1)
     {           
-        runProLine = builtInFunc(location, numOfArg);
+        runProLine = builtInFunc(location, numOfArg, );
     }
     else
     {
