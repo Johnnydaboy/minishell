@@ -322,45 +322,67 @@ void unShiftBuiltIn (char **line, int numArgs)
     }     
 }
 
-int DisplayToConsole(char *filename)
+void DisplayToConsole(char *filename)
 {
     struct stat fileStat;
-    int fail = stat(filename,&fileStat);
-    if (fail == -1)
-    {
-        return 1;
-    }
-    //printf("fail is %d\n", fail);
+    stat(filename,&fileStat);
     struct tm *info;
     struct passwd *pwd;
     struct group *grp;
     time_t get_mtime;
     char timeBuff[100];
-    printf("%s\t", filename);
-    printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
-    printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
-    printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
-    printf( (fileStat.st_mode & S_IXUSR) ? "x" : "-");
-    printf( (fileStat.st_mode & S_IRGRP) ? "r" : "-");
-    printf( (fileStat.st_mode & S_IWGRP) ? "w" : "-");
-    printf( (fileStat.st_mode & S_IXGRP) ? "x" : "-");
-    printf( (fileStat.st_mode & S_IROTH) ? "r" : "-");
-    printf( (fileStat.st_mode & S_IWOTH) ? "w" : "-");
-    printf( (fileStat.st_mode & S_IXOTH) ? "x" : "-");
-    printf("\t%ld", fileStat.st_nlink);
+    char bufferForWrite[1024];
+    int lenOfStrLen = 0;
 
+    lenOfStrLen = strlen(filename);
+    snprintf(bufferForWrite, lenOfStrLen + 1, "%s", filename);
+    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    
     pwd = getpwuid(fileStat.st_uid);
-    printf("\t%s", pwd->pw_name);
-
+    lenOfStrLen = strlen(pwd->pw_name);
+    snprintf(bufferForWrite, lenOfStrLen + 2, "\t%s", pwd->pw_name);
+    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    
     grp = getgrgid(fileStat.st_gid);
-    printf("\t%s", grp->gr_name);
-    printf("\t%ld", fileStat.st_size);
+    lenOfStrLen = strlen(grp->gr_name);
+    snprintf(bufferForWrite, lenOfStrLen + 2, "\t%s", grp->gr_name);
+    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    
+    snprintf(bufferForWrite, 2, (S_ISDIR(fileStat.st_mode)) ? "\td" : "\t-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
+    snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IRUSR) ? "r" : "-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
+    snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IWUSR) ? "w" : "-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
+    snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IXUSR) ? "x" : "-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
+    snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IRGRP) ? "r" : "-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
+    snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IWGRP) ? "w" : "-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
+    snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IXGRP) ? "x" : "-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
+    snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IROTH) ? "r" : "-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
+    snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IWOTH) ? "w" : "-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
+    snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IXOTH) ? "x" : "-");
+    write(STDOUT_FILENO, bufferForWrite, 1);
 
+    lenOfStrLen = snprintf(NULL, 0, "%ld", fileStat.st_nlink);
+    snprintf(bufferForWrite, lenOfStrLen + 2, "\t%ld", fileStat.st_nlink);
+    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    
+    lenOfStrLen = snprintf(NULL, 0, "%ld", fileStat.st_size);
+    snprintf(bufferForWrite, lenOfStrLen + 2, "\t%ld", fileStat.st_size);
+    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    
     get_mtime = fileStat.st_mtime;
     info = localtime(&get_mtime);
     strftime(timeBuff, sizeof(timeBuff), "%d.%m.%Y %H:%M:%S", info);
-    printf("\t%s\n", timeBuff);
-    return 0;
+    lenOfStrLen = strlen(timeBuff);
+    snprintf(bufferForWrite, lenOfStrLen + 3, "\t%s\n", timeBuff);
+    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 2);
 }
 
 void sstat (char **line, int numArgs)

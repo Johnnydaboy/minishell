@@ -523,7 +523,7 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
                         //printf("Returned 0 no conditions\n");
         return(0);
     }
-    if (*comparBuf == '.')
+    if (*dirBuf == '.')
     {
                         //printf("Returned 1 hidden file");
         return 1;
@@ -682,6 +682,9 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     while (*origBuffLoc != "\0")
+    {
+        if (*origBuffLoc == ')')
+    }
     int fileDescriptors[2];
     if (pipe(fileDescriptors) == -1)
     {
