@@ -37,7 +37,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
 {
-    int lenOfFuncArr = 8;
+    int lenOfFuncArr = 9;
     char *Inz[lenOfFuncArr];
     Inz[0] = "${";
     Inz[1] = "$$";
@@ -98,15 +98,18 @@ int expand (char *orig, char *new, int newsize)
                 }
                 else
                 {
-                    int i;
+                    new = new + inputNew;
+                    //int i;
                     // the single character copy over that is given if a function is called
                                             //printf("copyOver is: %s\n", copyOver);
+                    /*
                     for (i = 0; i < inputNew; i++)
                     {
                         *new = *copyOver;
                         new++;
                         copyOver++;
                     }
+                    */
                     whatInz = 0;
                     break;
                 }
@@ -176,25 +179,32 @@ char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * co
     
     
     char * envstr = getenv(ptr2temp);
-    
     if (envstr == NULL)
     {
         return NULL;
     }
-    
-    int much = strlen(envstr);
-    *counterNew = much;
-    return envstr;
+    int cpyover = 0;
+    while (envstr[cpyover] != '\0')
+    {
+        newBuff[cpyover] = envstr[cpyover];
+        cpyover++;
+    }
+    newBuff[cpyover] = '\0';
+    //int lenOfnBuf = strlen(newBuff);
+    *counterNew = cpyover;
+    printf("newBuff is %s\n", newBuff);
+    return newBuff;
 }
 
 // The second expand subfunction which expands the $$ environment
 char * expandPid (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int envint = getppid();
-    sprintf(globalStrValOfInt,"%d", envint);
-    int cNew = strlen(globalStrValOfInt);
+    sprintf(newBuff,"%d", envint);
+    int cNew = strlen(newBuff);
     *counterNew = cNew;
-    return globalStrValOfInt;
+    printf("%s\n", newBuff);
+    return newBuff;
 }
 
 char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
@@ -203,18 +213,18 @@ char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * c
     if (margc == 1)
     {
         argsHere = margc;
-        sprintf(globalStrValOfInt, "%d", argsHere);
-        *counterNew = strlen(globalStrValOfInt);
-        return globalStrValOfInt;
+        sprintf(newBuff, "%d", argsHere);
+        *counterNew = strlen(newBuff);
+        return newBuff;
     }
     else
     {
         argsHere = margc - (counterForShift + 1);
     }
     //printf("%d\n", argsHere);
-    sprintf(globalStrValOfInt, "%d", argsHere);
-    *counterNew = strlen(globalStrValOfInt);
-    return globalStrValOfInt;
+    sprintf(newBuff, "%d", argsHere);
+    *counterNew = strlen(newBuff);
+    return newBuff;
 }
 
 char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
@@ -222,10 +232,10 @@ char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int *
     int envint;
     if (normalExit == true)
     {
-        sprintf(globalStrValOfInt, "%d", exitStatus);
-        int cNew = strlen(globalStrValOfInt);
+        sprintf(newBuff, "%d", exitStatus);
+        int cNew = strlen(newBuff);
         *counterNew = cNew;
-        return globalStrValOfInt;
+        return newBuff;
     }
     else if (normalExit == false)
     {
@@ -236,10 +246,10 @@ char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int *
         envint = 127;
     }
     
-    sprintf(globalStrValOfInt,"%d", envint);
-    int cNew = strlen(globalStrValOfInt);
+    sprintf(newBuff,"%d", envint);
+    int cNew = strlen(newBuff);
     *counterNew = cNew;
-    return globalStrValOfInt;
+    return newBuff;
 }
 
 
@@ -247,15 +257,13 @@ char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int *
 
 
 
-globalStrValOfInt
-
 char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int totalNum = 0;
     int length = 0;
     int locationInfo = 0;
     bool enterNum = false;
-    int locForGlobalValOfInt = 0; 
+    int locForNewBuff = 0; 
     int tempArg = 0;
     if (*origBuffLoc == '\0' || *origBuffLoc == ' ' )
     {
@@ -273,8 +281,8 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
     } 
     if (enterNum == false)
     {
-        globalStrValOfInt[locForGlobalValOfInt] = '\0';
-        return globalStrValOfInt;
+        newBuff[locForNewBuff] = '\0';
+        return newBuff;
     }
     if (totalNum == 0)
     {
@@ -287,9 +295,9 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
             ptrToTemp[tempArgLen] = '\0';
             while (ptrToTemp[tempArg] != '\0')
             {
-                globalStrValOfInt[locForGlobalValOfInt] = ptrToTemp[tempArg];
+                newBuff[locForNewBuff] = ptrToTemp[tempArg];
                 tempArg++;
-                locForGlobalValOfInt++;
+                locForNewBuff++;
             }
             tempArg = 0;
         }
@@ -302,16 +310,16 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
             ptrToTemp[tempArgLen] = '\0';
             while (ptrToTemp[tempArg] != '\0')
             {
-                globalStrValOfInt[locForGlobalValOfInt] = ptrToTemp[tempArg];
+                newBuff[locForNewBuff] = ptrToTemp[tempArg];
                 tempArg++;
-                locForGlobalValOfInt++;
+                locForNewBuff++;
             }
             tempArg = 0;
         }
-        globalStrValOfInt[locForGlobalValOfInt] = '\0';
+        newBuff[locForNewBuff] = '\0';
         *counter = length;
-        *counterNew = strlen(globalStrValOfInt);
-        return globalStrValOfInt;
+        *counterNew = strlen(newBuff);
+        return newBuff;
     }
     else if (totalNum != 0)
     {
@@ -321,15 +329,15 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
         {
             while (*origBuffLoc != '\0')
             {
-                globalStrValOfInt[locForGlobalValOfInt] = *origBuffLoc;
-                locForGlobalValOfInt++;
+                newBuff[locForNewBuff] = *origBuffLoc;
+                locForNewBuff++;
                 origBuffLoc++;
                 length++;
             }
-            globalStrValOfInt[locForGlobalValOfInt] = '\0';
-            *counter = length;globalStrValOfInt
-            *counterNew = strlen(globalStrValOfInt);
-            return globalStrValOfInt;
+            newBuff[locForNewBuff] = '\0';
+            *counter = length;
+            *counterNew = strlen(newBuff);
+            return newBuff;
         }
         char tempCpyMargv[1024];
         char * ptrToTemp = tempCpyMargv;
@@ -338,30 +346,30 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
         ptrToTemp[tempArgLen] = '\0';
         while (ptrToTemp[tempArg] != '\0')
         {
-            globalStrValOfInt[locForGlobalValOfInt] = ptrToTemp[tempArg];
+            newBuff[locForNewBuff] = ptrToTemp[tempArg];
             ptrToTemp++;
-            locForGlobalValOfInt++;
+            locForNewBuff++;
         }
         tempArg = 0;
         
         while (*origBuffLoc != '\0')
         {
-            globalStrValOfInt[locForGlobalValOfInt] = *origBuffLoc;
-            locForGlobalValOfInt++;
+            newBuff[locForNewBuff] = *origBuffLoc;
+            locForNewBuff++;
             origBuffLoc++;
             length++;
         }
-        globalStrValOfInt[locForGlobalValOfInt] = '\0';
+        newBuff[locForNewBuff] = '\0';
         *counter = length;
-        *counterNew = strlen(globalStrValOfInt);
-        return globalStrValOfInt;
+        *counterNew = strlen(newBuff);
+        return newBuff;
     }
     else
     {
         printf("Error: Something has occured\n");
         return NULL;
     }
-    return globalStrValOfInt;
+    return newBuff;
 }
 
 char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
@@ -387,12 +395,12 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
     /*
     if (whatInz == 7)
     {
-        globalStrValOfInt[loc] = '"';
+        newBuff[loc] = '"';
         loc++;
     }
     if (whatInz == 8)
     {
-        globalStrValOfInt[loc] = ' ';
+        newBuff[loc] = ' ';
         loc++;
     }
     */
@@ -415,11 +423,11 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
             while (Dirent->d_name[len] != '\0')
             {
                 //printf("here\n");
-                globalStrValOfInt[loc] = Dirent->d_name[len];
+                newBuff[loc] = Dirent->d_name[len];
                 loc++;
                 len++;
             }
-            globalStrValOfInt[loc] = ' ';
+            newBuff[loc] = ' ';
             loc++;
                                 //printf ("%s\n", Dirent->d_name);
         }
@@ -433,7 +441,7 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
     if (matches == false)
     {
         bool dontRun = true;
-        globalStrValOfInt[loc] = '*';
+        newBuff[loc] = '*';
         loc++;
         while (*origBuffLoc != ' ' && *origBuffLoc != '\0')
         {
@@ -442,30 +450,30 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
             {
                 dontRun = false;
             }
-            globalStrValOfInt[loc] = *origBuffLoc;
+            newBuff[loc] = *origBuffLoc;
             origBuffLoc++;
             lengthOfBuf++;
             loc++;
         }
         *counter = lengthOfBuf;
-        globalStrValOfInt[loc] = '\0';
+        newBuff[loc] = '\0';
         if (dontRun == true)
         {
             if (isQuote == true)
             {
-                globalStrValOfInt[loc] = '"';
+                newBuff[loc] = '"';
                 loc++;
-                globalStrValOfInt[loc] = '\0';
+                newBuff[loc] = '\0';
                 isQuote = false;
             }
         }
-        *counterNew = strlen(globalStrValOfInt);
+        *counterNew = strlen(newBuff);
         closedir(dir);
-                            //printf("%s\n", globalStrValOfInt);
-        return globalStrValOfInt;
+                            //printf("%s\n", newBuff);
+        return newBuff;
     }
     loc--;
-    globalStrValOfInt[loc] = '\0';
+    newBuff[loc] = '\0';
     while (*origBuffLoc != ' ' && *origBuffLoc != '\0')
     {
         origBuffLoc++;
@@ -474,15 +482,15 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
     *counter = lengthOfBuf;
     if (isQuote == true)
     {
-        globalStrValOfInt[loc] = '"';
+        newBuff[loc] = '"';
         loc++;
-        globalStrValOfInt[loc] = '\0';
+        newBuff[loc] = '\0';
         isQuote = false;
     }
-    *counterNew = strlen(globalStrValOfInt);
+    *counterNew = strlen(newBuff);
     closedir(dir);
-                    //printf("globalBuf is: %s\n", globalStrValOfInt);
-    return globalStrValOfInt;
+                    //printf("globalBuf is: %s\n", newBuff);
+    return newBuff;
 }
 
 
@@ -571,12 +579,17 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
 char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int loc = 0;
-    globalStrValOfInt[loc] = '*';
+    newBuff[loc] = '*';
     loc++;
-    globalStrValOfInt[loc] = '\0';
-    *counterNew = strlen(globalStrValOfInt);
-    return globalStrValOfInt;
+    newBuff[loc] = '\0';
+    *counterNew = strlen(newBuff);
+    return newBuff;
 }
+
+
+
+
+
 
 char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
@@ -590,19 +603,19 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
     char * ptrToBuffer = buffer;
     if (*origBuffLoc == '~')
     {
-        globalStrValOfInt[counterf] = '~';
+        newBuff[counterf] = '~';
         counterf++;
         while(*origBuffLoc != ' ' && *origBuffLoc != '\0')
         {
-            globalStrValOfInt[counterf] = *origBuffLoc;
+            newBuff[counterf] = *origBuffLoc;
             counterf++;
             origBuffLoc++;
             counterOld++;
         }
-        globalStrValOfInt[counterf] = '\0';
+        newBuff[counterf] = '\0';
         *counter = counterOld;
-        *counterNew = strlen(globalStrValOfInt);
-        return globalStrValOfInt;
+        *counterNew = strlen(newBuff);
+        return newBuff;
     }
     if (*origBuffLoc == ' ' || *origBuffLoc == '\0' || *origBuffLoc == '/' || *origBuffLoc == '~')
     {
@@ -610,20 +623,20 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
         strcpy(buf, pwd->pw_dir);
         while(ptrToBuf[counterf] != '\0')
         {
-            globalStrValOfInt[counterf] = ptrToBuf[counterf];
+            newBuff[counterf] = ptrToBuf[counterf];
             counterf++;
         }
         while(*origBuffLoc != ' ' && *origBuffLoc != '\0')
         {
-            globalStrValOfInt[counterf] = *origBuffLoc;
+            newBuff[counterf] = *origBuffLoc;
             counterf++;
             origBuffLoc++;
             counterOld++;
         }
-        globalStrValOfInt[counterf] = '\0';
+        newBuff[counterf] = '\0';
         *counter = counterOld;
-        *counterNew = strlen(globalStrValOfInt);
-        return globalStrValOfInt;
+        *counterNew = strlen(newBuff);
+        return newBuff;
     }
     while (*origBuffLoc != ' ' && *origBuffLoc != '\0' && *origBuffLoc != '/' && *origBuffLoc != '~')
     {
@@ -635,25 +648,25 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
     if (*origBuffLoc == '~')
     {
         int countera = 0;
-        globalStrValOfInt[counterf] = '~';
+        newBuff[counterf] = '~';
         counterf++;
         while(ptrToBuffer[countera] != '\0')
         {
-            globalStrValOfInt[counterf] = ptrToBuffer[countera];
+            newBuff[counterf] = ptrToBuffer[countera];
             counterf++;
             countera++;
         }
         while(*origBuffLoc != ' ' && *origBuffLoc != '\0')
         {
-            globalStrValOfInt[counterf] = *origBuffLoc;
+            newBuff[counterf] = *origBuffLoc;
             counterf++;
             origBuffLoc++;
             counterOld++;
         }
-        globalStrValOfInt[counterf] = '\0';
+        newBuff[counterf] = '\0';
         *counter = counterOld;
-        *counterNew = strlen(globalStrValOfInt);
-        return globalStrValOfInt;
+        *counterNew = strlen(newBuff);
+        return newBuff;
     }
     ptrToBuffer[loc] = '\0';
     pwd = getpwnam(buffer);
@@ -661,22 +674,26 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
     int ctrForBuf = 0;
     while(ptrToBuf[ctrForBuf] != '\0')
     {
-        globalStrValOfInt[ctrForBuf] = ptrToBuf[ctrForBuf];
+        newBuff[ctrForBuf] = ptrToBuf[ctrForBuf];
         ctrForBuf++;
     }
     while(*origBuffLoc != ' ' && *origBuffLoc != '\0')
     {
-        globalStrValOfInt[ctrForBuf] = *origBuffLoc;
+        newBuff[ctrForBuf] = *origBuffLoc;
         ctrForBuf++;
         origBuffLoc++;
         counterOld++;
     }
-    globalStrValOfInt[ctrForBuf] = '\0';
+    newBuff[ctrForBuf] = '\0';
     *counter = counterOld;
-    //printf("%s\n", globalStrValOfInt);
-    *counterNew = strlen(globalStrValOfInt);
-    return globalStrValOfInt;
+    //printf("%s\n", newBuff);
+    *counterNew = strlen(newBuff);
+    return newBuff;
 }
+
+
+
+
 
 
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
@@ -756,14 +773,14 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     int copyOver = 0;
     while (importToBuff[copyOver] != '\0')
     {
-        globalStrValOfInt[copyOver] = importToBuff[copyOver];
+        newBuff[copyOver] = importToBuff[copyOver];
         counterForNew++;
         copyOver++;
     }
     *counterNew = counterForNew;
     *counter = counterForOld;
-    globalStrValOfInt[copyOver] = '\0';
-    return globalStrValOfInt;
+    newBuff[copyOver] = '\0';
+    return newBuff;
 }
 
 
