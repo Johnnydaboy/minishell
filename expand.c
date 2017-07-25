@@ -19,7 +19,7 @@
 bool normalExit = true;
 int whatInz;
 int whatDollar;
-char globalStrValOfInt[1024];
+//char globalStrValOfInt[1024];
 int findInz (char * orig, char * Inz);
 bool isQuote;
 char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -43,11 +43,11 @@ int expand (char *orig, char *new, int newsize)
     Inz[1] = "$$";
     Inz[2] = "$#";
     Inz[3] = "$?";
-    Inz[4] = "$";
-    Inz[5] = "\\*";
-    Inz[6] = "*";
-    Inz[7] = "~";
-    Inz[8] = "$(";
+    Inz[4] = "$(";
+    Inz[5] = "$";
+    Inz[6] = "\\*";
+    Inz[7] = "*";
+    Inz[8] = "~";
     int whereIsInz = 0;
     int whereIsNew = 0;
     typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -56,11 +56,11 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[1] = expandPid;
     funcInzArr[2] = expandNumArgs;
     funcInzArr[3] = expandProcessId;
-    funcInzArr[4] = expandLocOfArg;
-    funcInzArr[5] = wildCardPrint;
-    funcInzArr[6] = wildCardExpand;
-    funcInzArr[7] = expandHomeDir;
-    funcInzArr[8] = commandExpansion;
+    funcInzArr[4] = commandExpansion;
+    funcInzArr[5] = expandLocOfArg;
+    funcInzArr[6] = wildCardPrint;
+    funcInzArr[7] = wildCardExpand;
+    funcInzArr[8] = expandHomeDir;
     int lenOfParam = 0;
     // This while loop will continue to execute until the orig string reads at 0 
     while (orig[whereIsInz] != 0)
@@ -207,7 +207,7 @@ char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * c
         *counterNew = strlen(globalStrValOfInt);
         return globalStrValOfInt;
     }
-    else 
+    else
     {
         argsHere = margc - (counterForShift + 1);
     }
@@ -247,7 +247,7 @@ char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int *
 
 
 
-
+globalStrValOfInt
 
 char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
@@ -327,7 +327,7 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
                 length++;
             }
             globalStrValOfInt[locForGlobalValOfInt] = '\0';
-            *counter = length;
+            *counter = length;globalStrValOfInt
             *counterNew = strlen(globalStrValOfInt);
             return globalStrValOfInt;
         }
@@ -682,15 +682,18 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int matchingBrace = 1;
+    int counterForOld = 0;
+    int counterForNew = 0;
     char cmdExpandBuf[1024];
     char ecmdExpandBuf[1024];
     char importToBuff[1024];
     int fileDescriptors[2];
+    fileDescriptors[0] = 1;
+    fileDescriptors[1] = 1;
     char * ptrTocmdExpandBuf = cmdExpandBuf;
     int ctrForcmdExp = 0;
     while (*origBuffLoc != '\0' || matchingBrace < 1)
     {
-        ptrTocmdExpandBuf[ctrForcmdExp] = *origBuffLoc;
         if (*origBuffLoc == '(')
         {
             matchingBrace++;
@@ -703,34 +706,63 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
             {
                 printf("Error\n");
             }
+            printf("cmdEB is %s\n", cmdExpandBuf);
+            printf("pipe read is %d\n", fileDescriptors[0]);
+            printf("pipe write is %d\n", fileDescriptors[1]);
             functional = processLine(cmdExpandBuf, ecmdExpandBuf, fileDescriptors);
+            printf("functional is %d\n", functional);
             if (functional == 1)
             {
                 printf("Error \n");
             }
             close(fileDescriptors[1]);
             read (fileDescriptors[0], importToBuff, 1024);
+            printf("importToBuff is %s", importToBuff);
             close(fileDescriptors[0]);
+            
+            /*
+            int pipeToBuf = 0;
+            while (importToBuff[pipeToBuf] != '\0')
+            {
+                ptrTocmdExpandBuf[ctrForcmdExp] = importToBuff[pipeToBuf];
+                ctrForcmdExp++;
+                pipeToBuf++;
+            }
+            */
             *origBuffLoc = ')';
-            origBuffLoc++;
         }
         else if (*origBuffLoc == ')' && matchingBrace > 1)
         {
             matchingBrace--;
         }
+        ptrTocmdExpandBuf[ctrForcmdExp] = *origBuffLoc;
+        ctrForcmdExp++;
         origBuffLoc++;
+        counterForOld++;
     }
+    /*
     if (matchingBrace != 1)
     {
         printf("Matching parentheses not found\n");
         return NULL;
     }
+    */
     /*
     if (pipe(fd) == -1)
     {
         printf("Error");
     }
     */
+    int copyOver = 0;
+    while (importToBuff[copyOver] != '\0')
+    {
+        globalStrValOfInt[copyOver] = importToBuff[copyOver];
+        counterForNew++;
+        copyOver++;
+    }
+    *counterNew = counterForNew;
+    *counter = counterForOld;
+    globalStrValOfInt[copyOver] = '\0';
     return globalStrValOfInt;
 }
 

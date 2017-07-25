@@ -15,7 +15,7 @@
 #include "proto.h"
 #include "globals.h"
 
-//int counterTillZero = 0;
+int fdInUse;
 int counterForShift = 0;
 bool enterShift = false;
 void exitBuiltIn (char **line, int args);
@@ -149,7 +149,7 @@ void aechoBuiltIn (char **line, int numArgs)
             }
         }
         
-    }    
+    }
 }
 
 // Another built in command the third to be percise, sets environment variables

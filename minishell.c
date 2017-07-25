@@ -144,7 +144,7 @@ void forkProcess (char **line, int fd[])
       /* We are the child! */
       dup2(fd[1], 1);
       close(fd[0]);
-      execvp ( line[0], &line[0]);
+      execvp (line[0], &line[0]);
       perror ("exec");
       exit (127);
     }
@@ -183,7 +183,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
         checkForPoundSign++;
     }
     int successfulExpand = expand(buffer, expandBuffer, LINELEN);
-    //printf("expandBuffer is: %s\n", expandBuffer);
+    printf("expandBuffer is: %s\n", expandBuffer);
     // Running arg_parse in order to return the arguments in a seperated string array format
     if (successfulExpand != 0)
     {
@@ -197,17 +197,20 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
     {
         return 1;
     }
-    bool runProLine;
+    bool runforkPro;
     
     /* Run it ... */
     // Kinda unneccesary but check to make sure that the process won't run if nothing is given to arg_parse
     if (numOfArg != 1)
-    {           
-        runProLine = builtInFunc(location, numOfArg, fd);
+    {
+        //dup2(fd[1], 1);
+        //close(fd[0]);
+        printf("Not forking\n");
+        runforkPro = builtInFunc(location, numOfArg, fd);
     }
     else
     {
-        runProLine = false;
+        runforkPro = false;
     }
     
     // This checks to make sure if there are no built in functions then it will call the library
@@ -215,8 +218,9 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
     if (numOfArg != 1)
     {
         // This makes sure that processline doesn't run if a built in function was called
-        if (runProLine == false)
+        if (runforkPro == false)
         {
+            printf("Forking\n");
             forkProcess (location, fd);
         }
     }
