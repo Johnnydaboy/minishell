@@ -142,6 +142,8 @@ void forkProcess (char **line, int fd[])
     /* Check for who we are! */
     if (cpid == 0) {
       /* We are the child! */
+      dup2(fd[1], 1);
+      close(fd[0]);
       execvp ( line[0], &line[0]);
       perror ("exec");
       exit (127);

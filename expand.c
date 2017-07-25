@@ -684,6 +684,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     int matchingBrace = 1;
     char cmdExpandBuf[1024];
     char ecmdExpandBuf[1024];
+    char importToBuff[1024];
     int fileDescriptors[2];
     char * ptrTocmdExpandBuf = cmdExpandBuf;
     int ctrForcmdExp = 0;
@@ -707,8 +708,13 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
             {
                 printf("Error \n");
             }
+            close(fileDescriptors[1]);
+            read (fileDescriptors[0], importToBuff, 1024);
+            close(fileDescriptors[0]);
+            *origBuffLoc = ')';
+            origBuffLoc++;
         }
-        else if (*origBuffLoc == ')')
+        else if (*origBuffLoc == ')' && matchingBrace > 1)
         {
             matchingBrace--;
         }
