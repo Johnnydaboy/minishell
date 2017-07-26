@@ -126,15 +126,14 @@ char ** arg_parse (char *line, int *argcp)
         }
     }
     *ptr1 = *ptr2;
-    ptrToStrArr[ptrToStrArrCounter] = 0;
-    
+    ptrToStrArr[ptrToStrArrCounter] = '\0';
     /*
-    while (*ptrToStrArr != 0)
+    int a = 0;
+    while (ptrToStrArr[a] != '\0')
     {
-        printf("%s\n", *ptrToStrArr);
-        ptrToStrArr++;
+        printf("arr is:%s\n", ptrToStrArr[a]);
+        a++;
     }
-    ptrToStrArr = ptrToStrArr - ptrToStrArrCounter;
     */
     return ptrToStrArr;
 }

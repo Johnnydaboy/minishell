@@ -183,7 +183,15 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
         checkForPoundSign++;
     }
     int successfulExpand = expand(buffer, expandBuffer, LINELEN);
-    printf("expandBuffer is: %s\n", expandBuffer);
+                            /*
+                            printf("expandBuffer is: %s\n", expandBuffer);
+                            int c = 0;
+                            while (expandBuffer[c] != '\0')
+                            {
+                                printf("exb is %c\n", expandBuffer[c]);
+                                c++;
+                            }
+                            */
     // Running arg_parse in order to return the arguments in a seperated string array format
     if (successfulExpand != 0)
     {
@@ -203,10 +211,11 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
     // Kinda unneccesary but check to make sure that the process won't run if nothing is given to arg_parse
     if (numOfArg != 1)
     {
+        //printf("Not forking\n");
+        //printf("%d\n", fd[1]);
+        runforkPro = builtInFunc(location, numOfArg, fd);
         //dup2(fd[1], 1);
         //close(fd[0]);
-        printf("Not forking\n");
-        runforkPro = builtInFunc(location, numOfArg, fd);
     }
     else
     {
@@ -220,8 +229,18 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
         // This makes sure that processline doesn't run if a built in function was called
         if (runforkPro == false)
         {
-            printf("Forking\n");
+            //printf("Forking\n");
+            //printf("location is %s\n", location);
+            /*
+            int a = 0;
+            while (location[a] != '\0')
+            {
+                printf("%s\n", location[a]);
+                a++;
+            }
+            */
             forkProcess (location, fd);
+            
         }
     }
     

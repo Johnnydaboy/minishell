@@ -33,6 +33,9 @@ int DisplayToConsole(char *filename);
 // It has a return type of bool in order to make sure processline doesnt run
 bool builtInFunc (char **line, int args, int * fd)
 {
+    fdInUse = fd[1];
+                                            printf("%d\n", fd[1]);
+                                            printf("%d\n", fdInUse);
     int n = 8;
     char *builtIns[n];
     builtIns[0] = "exit";
@@ -116,14 +119,14 @@ void aechoBuiltIn (char **line, int numArgs)
             {
                 lenOfStrLen = strlen(line[counterb]);
                 snprintf(bufferForWrite, lenOfStrLen + 1, "%s", line[counterb]);
-                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen);
+                write(fdInUse, bufferForWrite, lenOfStrLen);
                 finish = true;
             }
             else if (line[counterb] != 0)
             {
                 lenOfStrLen = strlen(line[counterb]);
                 snprintf(bufferForWrite, lenOfStrLen + 2, "%s ", line[counterb]);
-                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+                write(fdInUse, bufferForWrite, lenOfStrLen + 1);
                 counterb++;
             }
         }

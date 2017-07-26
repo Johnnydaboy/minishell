@@ -118,6 +118,8 @@ int expand (char *orig, char *new, int newsize)
         if (lenOfParam == 0)
         {
                                                             //printf("goeshere?\n");
+            //printf("The char for new is:%c\n",*new);
+            //printf("orig at inz is:%c\n",orig[whereIsInz]);
             *new = orig[whereIsInz];
             new++;
             whereIsInz++;
@@ -125,6 +127,7 @@ int expand (char *orig, char *new, int newsize)
         }
     }
     *new = '\0';
+    //printf("new is:%s\n", new);
     return 1;
 }
 
@@ -693,9 +696,6 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
 
 
 
-
-
-
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int matchingBrace = 1;
@@ -705,11 +705,11 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     char ecmdExpandBuf[1024];
     char importToBuff[1024];
     int fileDescriptors[2];
-    fileDescriptors[0] = 1;
-    fileDescriptors[1] = 1;
-    char * ptrTocmdExpandBuf = cmdExpandBuf;
+    //fileDescriptors[0] = 1;
+    //fileDescriptors[1] = 1;
+    //char * ptrTocmdExpandBuf = cmdExpandBuf;
     int ctrForcmdExp = 0;
-    while (*origBuffLoc != '\0' || matchingBrace < 1)
+    while (*origBuffLoc != '\0' && matchingBrace >= 1)
     {
         if (*origBuffLoc == '(')
         {
@@ -717,24 +717,47 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         }
         else if (*origBuffLoc == ')' && matchingBrace == 1)
         {
-            int functional;
-            *origBuffLoc = '\0';
+            //*origBuffLoc = '\0';
             if (pipe(fileDescriptors) == -1)
             {
                 printf("Error\n");
             }
-            printf("cmdEB is %s\n", cmdExpandBuf);
-            printf("pipe read is %d\n", fileDescriptors[0]);
-            printf("pipe write is %d\n", fileDescriptors[1]);
-            functional = processLine(cmdExpandBuf, ecmdExpandBuf, fileDescriptors);
-            printf("functional is %d\n", functional);
+                                        //printf("pipe read is %d\n", fileDescriptors[0]);
+                                        //printf("pipe write is %d\n", fileDescriptors[1]);
+                                        
+            cmdExpandBuf[ctrForcmdExp] = '\0';
+                                        /*
+                                        int a = 0;
+                                        while (cmdExpandBuf[a] != '\0')
+                                        {
+                                            printf("ceb char is %c\n", cmdExpandBuf[a]);
+                                            a++;
+                                        }
+                                        */
+            int functional = processLine(cmdExpandBuf, ecmdExpandBuf, fileDescriptors);
+                                        //printf("functional is %d\n", functional);
             if (functional == 1)
             {
-                printf("Error \n");
+                printf("Error\n");
             }
             close(fileDescriptors[1]);
             read (fileDescriptors[0], importToBuff, 1024);
-            printf("importToBuff is %s", importToBuff);
+            
+            //ONE OF THE CHARACTERS IN IMPORTTOBUFF IS A NEWLINE CHARACTER!!!!!!!!!!!!
+                                        //printf("importToBuff is %s", importToBuff);
+                                        /*
+                                        int b = 0;
+                                        while (importToBuff[b] != '\0')
+                                        {
+                                            if (importToBuff[b] == '\n')
+                                            {
+                                                printf("THERE IS A N HERE!!!!!!!!!!!\n");
+                                                break;
+                                            }
+                                            printf("char for imp is %c\n",importToBuff[b]);
+                                            b++;
+                                        }
+                                        */
             close(fileDescriptors[0]);
             
             /*
@@ -746,33 +769,35 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
                 pipeToBuf++;
             }
             */
-            *origBuffLoc = ')';
+            //error in putting back the ) without incrementing the counter buffer?
+            //*origBuffLoc = ')';
+            matchingBrace--;
+            origBuffLoc++;
+            counterForOld++;
         }
         else if (*origBuffLoc == ')' && matchingBrace > 1)
         {
             matchingBrace--;
         }
-        ptrTocmdExpandBuf[ctrForcmdExp] = *origBuffLoc;
+        cmdExpandBuf[ctrForcmdExp] = *origBuffLoc;
+                                        //printf("cmdeB is %s\n", cmdExpandBuf);
         ctrForcmdExp++;
         origBuffLoc++;
         counterForOld++;
     }
-    /*
-    if (matchingBrace != 1)
+    if (matchingBrace < 0)
     {
         printf("Matching parentheses not found\n");
         return NULL;
     }
-    */
-    /*
-    if (pipe(fd) == -1)
-    {
-        printf("Error");
-    }
-    */
+                                        //printf("importToBuff2 is %s", importToBuff);
     int copyOver = 0;
     while (importToBuff[copyOver] != '\0')
     {
+        if (importToBuff[copyOver] == '\n')
+        {
+            importToBuff[copyOver] = '\0';
+        }
         newBuff[copyOver] = importToBuff[copyOver];
         counterForNew++;
         copyOver++;
@@ -782,8 +807,6 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     newBuff[copyOver] = '\0';
     return newBuff;
 }
-
-
 
 
 
