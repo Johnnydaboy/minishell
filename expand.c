@@ -19,7 +19,6 @@
 bool normalExit = true;
 int whatInz;
 int whatDollar;
-//char globalStrValOfInt[1024];
 int findInz (char * orig, char * Inz);
 bool isQuote;
 char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -29,7 +28,6 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
 char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-//char * poundSign (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 int comparisionFunc(char * comparBuf, char * dirBuf);
 char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
@@ -77,7 +75,6 @@ int expand (char *orig, char *new, int newsize)
                 // counter (orig counter is inputC) is added to the original buffer in order to skip ahead what is found in findInz
                 // ^ (new counter is inputNew) same applies to counterNew but with newBuff rather
                 char * copyOver = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
-                //printf("copyOver is: %s\n", copyOver);
                 // If it fail and no } is found it will print an error statement
                 if (inputNew == -1)
                 {
@@ -99,17 +96,6 @@ int expand (char *orig, char *new, int newsize)
                 else
                 {
                     new = new + inputNew;
-                    //int i;
-                    // the single character copy over that is given if a function is called
-                                            //printf("copyOver is: %s\n", copyOver);
-                    /*
-                    for (i = 0; i < inputNew; i++)
-                    {
-                        *new = *copyOver;
-                        new++;
-                        copyOver++;
-                    }
-                    */
                     whatInz = 0;
                     break;
                 }
@@ -117,9 +103,6 @@ int expand (char *orig, char *new, int newsize)
         }
         if (lenOfParam == 0)
         {
-                                                            //printf("goeshere?\n");
-            //printf("The char for new is:%c\n",*new);
-            //printf("orig at inz is:%c\n",orig[whereIsInz]);
             *new = orig[whereIsInz];
             new++;
             whereIsInz++;
@@ -127,7 +110,6 @@ int expand (char *orig, char *new, int newsize)
         }
     }
     *new = '\0';
-    //printf("new is:%s\n", new);
     return 1;
 }
 
@@ -193,7 +175,6 @@ char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * co
         cpyover++;
     }
     newBuff[cpyover] = '\0';
-    //int lenOfnBuf = strlen(newBuff);
     *counterNew = cpyover;
     printf("newBuff is %s\n", newBuff);
     return newBuff;
@@ -224,7 +205,6 @@ char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * c
     {
         argsHere = margc - (counterForShift + 1);
     }
-    //printf("%d\n", argsHere);
     sprintf(newBuff, "%d", argsHere);
     *counterNew = strlen(newBuff);
     return newBuff;
@@ -383,7 +363,6 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
     int printDir;
     int loc = 0;
     int lengthOfBuf = 0;
-    //printf("OrigBuff is, %s\n", origBuffLoc);
     if (getcwd(cwd, sizeof(cwd)) != NULL)
     {
         //printf("%s\n", cwd);
@@ -395,18 +374,6 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
         printf ("Cannot open direcotry\n");
         return NULL;
     }
-    /*
-    if (whatInz == 7)
-    {
-        newBuff[loc] = '"';
-        loc++;
-    }
-    if (whatInz == 8)
-    {
-        newBuff[loc] = ' ';
-        loc++;
-    }
-    */
     bool matches = false;
     while ((Dirent = readdir(dir)) != NULL)
     {
@@ -415,31 +382,20 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
         {
             matches = true;
             int len = 0; 
-            /*
-            while (Dirent->d_name[len] != 0)
-            {
-                printf("%c\n", Dirent->d_name[len]);
-                len++;  
-            }
-            */
-            
             while (Dirent->d_name[len] != '\0')
             {
-                //printf("here\n");
                 newBuff[loc] = Dirent->d_name[len];
                 loc++;
                 len++;
             }
             newBuff[loc] = ' ';
             loc++;
-                                //printf ("%s\n", Dirent->d_name);
         }
         else if (printDir == 3)
         {
             printf("Error: / detected\n");
             break;
         }
-        //i++;
     }
     if (matches == false)
     {
@@ -448,7 +404,6 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
         loc++;
         while (*origBuffLoc != ' ' && *origBuffLoc != '\0')
         {
-                                //printf("%c\n", *origBuffLoc);
             if (*origBuffLoc == '"')
             {
                 dontRun = false;
@@ -472,7 +427,6 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
         }
         *counterNew = strlen(newBuff);
         closedir(dir);
-                            //printf("%s\n", newBuff);
         return newBuff;
     }
     loc--;
@@ -492,7 +446,6 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
     }
     *counterNew = strlen(newBuff);
     closedir(dir);
-                    //printf("globalBuf is: %s\n", newBuff);
     return newBuff;
 }
 
@@ -502,8 +455,6 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
 
 int comparisionFunc(char * comparBuf, char * dirBuf)
 {
-                        //printf("Comparison is,%s\n", comparBuf);
-                        //printf("Directory is, %s\n", dirBuf);
     int lenOfBuff = 0;
     while (comparBuf[lenOfBuff] != '\0' && comparBuf[lenOfBuff] != '"' && comparBuf[lenOfBuff] != ' ')
     {
@@ -513,16 +464,10 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
     {
         isQuote = true;
     }
-                        //printf("lenOfBuff: %d\n", lenOfBuff);
-    //= strlen(comparBuf);
     int lenOfDir = strlen(dirBuf);
-                        //printf("lenOfDir: %d\n", lenOfDir);
-                        
     int moveToLen = lenOfDir - lenOfBuff;
-                        //printf("moveToLen: %d\n", moveToLen);
     if (moveToLen < 0)
     {
-                        //printf("Returned 2\n");
         return (2);
     }
     if (*comparBuf == '"')
@@ -531,22 +476,16 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
     }
     if (*comparBuf == ' ' || *comparBuf == '\0' || *comparBuf == '"')
     {
-                        //printf("Returned 0 no conditions\n");
         return(0);
     }
     if (*dirBuf == '.')
     {
-                        //printf("Returned 1 hidden file");
         return 1;
     }
-    
-                                            //printf("%c\n", dirBuf[moveToLen]);
-                                            //printf("%c\n", *comparBuf);
     while ((*comparBuf != '\0' || *comparBuf != ' ') && dirBuf[moveToLen] != 0)
     {
         if (*comparBuf == '/')
         {
-                        //printf("We go here?\n");
             return(3);
         }
         else if (*comparBuf == dirBuf[moveToLen])
@@ -556,7 +495,6 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
         }
         if (*comparBuf == '"')
         {
-                        //printf("Returned 0 if quote and EOF char\n");
             return(0);
         }
         else if (*comparBuf == ' ' && dirBuf[moveToLen] == '\0')
@@ -565,15 +503,11 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
         }
         else if (*comparBuf != dirBuf[moveToLen])
         {
-                        //printf("%c\n", dirBuf[moveToLen]);
-                        //printf("%c\n", *comparBuf);
-                        //printf("Returned 1 failed\n");
             return(1);
         }
     }
     if (*comparBuf == 0 && dirBuf[moveToLen] == 0)
     {
-                        //printf("Returned 0 successful both zero\n");
         return(0);
     }
     return(1);
@@ -689,7 +623,6 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
     }
     newBuff[ctrForBuf] = '\0';
     *counter = counterOld;
-    //printf("%s\n", newBuff);
     *counterNew = strlen(newBuff);
     return newBuff;
 }
@@ -707,7 +640,6 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     int fileDescriptors[2];
     //fileDescriptors[0] = 1;
     //fileDescriptors[1] = 1;
-    //char * ptrTocmdExpandBuf = cmdExpandBuf;
     int ctrForcmdExp = 0;
     while (*origBuffLoc != '\0' && matchingBrace >= 1)
     {
@@ -717,60 +649,19 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         }
         else if (*origBuffLoc == ')' && matchingBrace == 1)
         {
-            //*origBuffLoc = '\0';
             if (pipe(fileDescriptors) == -1)
             {
                 printf("Error\n");
             }
-                                        //printf("pipe read is %d\n", fileDescriptors[0]);
-                                        //printf("pipe write is %d\n", fileDescriptors[1]);
-                                        
             cmdExpandBuf[ctrForcmdExp] = '\0';
-                                        /*
-                                        int a = 0;
-                                        while (cmdExpandBuf[a] != '\0')
-                                        {
-                                            printf("ceb char is %c\n", cmdExpandBuf[a]);
-                                            a++;
-                                        }
-                                        */
             int functional = processLine(cmdExpandBuf, ecmdExpandBuf, fileDescriptors);
-                                        //printf("functional is %d\n", functional);
             if (functional == 1)
             {
                 printf("Error\n");
             }
             close(fileDescriptors[1]);
             read (fileDescriptors[0], importToBuff, 1024);
-            
-            //ONE OF THE CHARACTERS IN IMPORTTOBUFF IS A NEWLINE CHARACTER!!!!!!!!!!!!
-                                        //printf("importToBuff is %s", importToBuff);
-                                        /*
-                                        int b = 0;
-                                        while (importToBuff[b] != '\0')
-                                        {
-                                            if (importToBuff[b] == '\n')
-                                            {
-                                                printf("THERE IS A N HERE!!!!!!!!!!!\n");
-                                                break;
-                                            }
-                                            printf("char for imp is %c\n",importToBuff[b]);
-                                            b++;
-                                        }
-                                        */
             close(fileDescriptors[0]);
-            
-            /*
-            int pipeToBuf = 0;
-            while (importToBuff[pipeToBuf] != '\0')
-            {
-                ptrTocmdExpandBuf[ctrForcmdExp] = importToBuff[pipeToBuf];
-                ctrForcmdExp++;
-                pipeToBuf++;
-            }
-            */
-            //error in putting back the ) without incrementing the counter buffer?
-            //*origBuffLoc = ')';
             matchingBrace--;
             origBuffLoc++;
             counterForOld++;
@@ -780,7 +671,6 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
             matchingBrace--;
         }
         cmdExpandBuf[ctrForcmdExp] = *origBuffLoc;
-                                        //printf("cmdeB is %s\n", cmdExpandBuf);
         ctrForcmdExp++;
         origBuffLoc++;
         counterForOld++;
@@ -790,7 +680,6 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         printf("Matching parentheses not found\n");
         return NULL;
     }
-                                        //printf("importToBuff2 is %s", importToBuff);
     int copyOver = 0;
     while (importToBuff[copyOver] != '\0')
     {

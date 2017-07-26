@@ -34,8 +34,6 @@ int DisplayToConsole(char *filename);
 bool builtInFunc (char **line, int args, int * fd)
 {
     fdInUse = fd[1];
-                                            printf("%d\n", fd[1]);
-                                            printf("%d\n", fdInUse);
     int n = 8;
     char *builtIns[n];
     builtIns[0] = "exit";
@@ -88,8 +86,6 @@ void exitBuiltIn (char **line, int numArgs)
     else
     {
         intStr = atoi (line[0]);
-        //valueForExit = intStr;
-        //printf("%d\n", valueForExit);
         exit(intStr);
     }
 }
@@ -158,34 +154,13 @@ void aechoBuiltIn (char **line, int numArgs)
 // Another built in command the third to be percise, sets environment variables
 void envsetBuiltIn (char **line, int numArgs)
 {
-    /*
-    if (numArgs != 2)
-    {
-        normalExit = false;
-        printf("Error: Invalid number of arguments for envset\n");
-        return;
-    }
-    */
-    /*
-    while (line != '\0')
-    {
-        printf("%s\n", *line);
-        line++;
-    }
-    */
     int comparison = strcmp(line[0], "P1");
-    //printf ("Comparison is %d\n", comparison);
-    //printf ("line at one is: %s\n", line[1]);
-    //printf ("line at zero is: %s\n", line[1]);
-    
     int envCpy = 1;
     int len = 0;
     char envStr[1024];
     char tempLine[1024];
     while (envCpy != numArgs)
     {
-        //int length = strlen(line[envCpy]);
-        //memcpy(tempLine, line[envCpy], length);
         strcpy(tempLine, line[envCpy]);
         int len1 = 0;
         while (tempLine[len1] != '\0')
@@ -197,8 +172,6 @@ void envsetBuiltIn (char **line, int numArgs)
         envStr[len] = ' ';
         len++;
         envCpy++;
-        //printf("%s\n", line[envCpy]);
-        //printf("%s\n", tempLine);
     }
     len--;
     envStr[len] = '\0';
@@ -256,11 +229,6 @@ void chdirBuiltIn (char **line, int numArgs)
 
 void shiftBuiltIn (char **line, int numArgs)
 {
-    //if (enterShift == false)
-    //{
-    //    //counterTillZero = margc;
-    //    enterShift = true;
-    //}
     int shiftBy;
     if (margc <= 2)
     {
@@ -271,7 +239,6 @@ void shiftBuiltIn (char **line, int numArgs)
     if (numArgs == 0)
     {
         counterForShift++;
-        //counterTillZero--;
     }
     else if (numArgs == 1)
     {
@@ -283,7 +250,6 @@ void shiftBuiltIn (char **line, int numArgs)
             return;
         }
         counterForShift = counterForShift + shiftBy;
-        //counterTillZero = counterTillZero - shiftBy;
     }
     else 
     {
@@ -298,14 +264,11 @@ void unShiftBuiltIn (char **line, int numArgs)
     int unshiftby;
     if (numArgs == 0)
     {
-        //counterTillZero = margc;
         counterForShift = 0;
-        //printf("locationa: %s\n", margv[0]);
     }
     else if (numArgs == 1)
     {
         unshiftby = atoi (line[0]);
-        //printf("unshift by is %d\n", unshiftby);
         if (unshiftby > (counterForShift - 2))
         {
             normalExit = false;
@@ -313,7 +276,6 @@ void unShiftBuiltIn (char **line, int numArgs)
             return;
         }
         counterForShift = counterForShift - unshiftby;
-        //counterTillZero = counterTillZero + unshiftby;
     }
     else
     { 
@@ -331,7 +293,6 @@ int DisplayToConsole(char *filename)
     {
         return 1;
     }
-    //printf("fail is %d\n", fail);
     struct tm *info;
     struct passwd *pwd;
     struct group *grp;
@@ -395,13 +356,6 @@ int DisplayToConsole(char *filename)
 void sstat (char **line, int numArgs)
 {
     int loopArgs = 0;
-    /*
-    if (numArgs != 1)
-    {
-        printf("External error detected, please change number of variable to something applicable\n");
-        return;
-    }
-    */
     while (line[loopArgs] != '\0')
     {
         int successOrFail = DisplayToConsole(line[loopArgs]);
@@ -414,10 +368,3 @@ void sstat (char **line, int numArgs)
     return;
 }
 
-/*
-int fileExists (char *filename)
-{
-    struct stat fileStat;
-    return (stat (filename, &file))
-}
-*/
