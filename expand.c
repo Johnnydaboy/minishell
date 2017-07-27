@@ -695,10 +695,20 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         //printf("%c\n",importToBuff[removeNewLine]);
         if (importToBuff[removeNewLine] == '\n')
         {
-        importToBuff[removeNewLine] = '\0';
+            importToBuff[removeNewLine] = ' ';
         }
         removeNewLine++;
     }
+    /*
+    if (importToBuff[removeNewLine] != '\0')
+    {
+        // change to \n or ' '
+        if (importToBuff[removeNewLine - 1] == '\n')
+        {
+            importToBuff[removeNewLine - 1] = '\0';
+        }
+    }
+    */
     int copyOver = 0;
     while (importToBuff[copyOver] != '\0')
     {
