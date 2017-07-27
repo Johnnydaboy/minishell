@@ -136,8 +136,11 @@ void forkProcess (char **line, int fd[])
     /* Check for who we are! */
     if (cpid == 0) {
       /* We are the child! */
-      dup2(fd[1], 1);
-      close(fd[0]);
+      if (fd[1] != 1)
+      {
+        dup2(fd[1], 1);
+        close(fd[0]);
+      }
       execvp (line[0], &line[0]);
       perror ("exec");
       exit (127);
@@ -197,11 +200,14 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
     if (numOfArg != 1)
     {
         runforkPro = builtInFunc(location, numOfArg, fd);
+        /*
         if (runforkPro == true)
         {
             dup2(fd[1], 1);
             close(fd[0]);
         }
+        */
+        //close(fd[0]);
     }
     else
     {
@@ -216,7 +222,6 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
         if (runforkPro == false)
         {
             forkProcess (location, fd);
-            
         }
     }
     

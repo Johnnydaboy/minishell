@@ -34,6 +34,7 @@ int DisplayToConsole(char *filename);
 bool builtInFunc (char **line, int args, int * fd)
 {
     fdInUse = fd[1];
+    //After changing the 
     int n = 8;
     char *builtIns[n];
     builtIns[0] = "exit";
@@ -115,14 +116,14 @@ void aechoBuiltIn (char **line, int numArgs)
             {
                 lenOfStrLen = strlen(line[counterb]);
                 snprintf(bufferForWrite, lenOfStrLen + 1, "%s", line[counterb]);
-                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen);
+                write(fdInUse, bufferForWrite, lenOfStrLen);
                 finish = true;
             }
             else if (line[counterb] != 0)
             {
                 lenOfStrLen = strlen(line[counterb]);
                 snprintf(bufferForWrite, lenOfStrLen + 2, "%s ", line[counterb]);
-                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+                write(fdInUse, bufferForWrite, lenOfStrLen + 1);
                 counterb++;
             }
         }
@@ -136,14 +137,14 @@ void aechoBuiltIn (char **line, int numArgs)
             if (line[counter] == '\0')
             {
                 snprintf(bufferForWrite, 2, "\n ");
-                write(STDOUT_FILENO, bufferForWrite, 2);
+                write(fdInUse, bufferForWrite, 2);
                 finish = true;
             }
             else
             {
                 lenOfStrLen = strlen(line[counter]);
                 snprintf(bufferForWrite, lenOfStrLen + 2, "%s ", line[counter]);
-                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+                write(fdInUse, bufferForWrite, lenOfStrLen + 1);
                 counter++;
             }
         }
@@ -303,53 +304,53 @@ int DisplayToConsole(char *filename)
 
     lenOfStrLen = strlen(filename);
     snprintf(bufferForWrite, lenOfStrLen + 1, "%s", filename);
-    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    write(fdInUse, bufferForWrite, lenOfStrLen + 1);
     
     pwd = getpwuid(fileStat.st_uid);
     lenOfStrLen = strlen(pwd->pw_name);
     snprintf(bufferForWrite, lenOfStrLen + 2, "\t%s", pwd->pw_name);
-    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    write(fdInUse, bufferForWrite, lenOfStrLen + 1);
     
     grp = getgrgid(fileStat.st_gid);
     lenOfStrLen = strlen(grp->gr_name);
     snprintf(bufferForWrite, lenOfStrLen + 2, "\t%s", grp->gr_name);
-    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    write(fdInUse, bufferForWrite, lenOfStrLen + 1);
     
     snprintf(bufferForWrite, 2, (S_ISDIR(fileStat.st_mode)) ? "\td" : "\t-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IRUSR) ? "r" : "-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IWUSR) ? "w" : "-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IXUSR) ? "x" : "-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IRGRP) ? "r" : "-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IWGRP) ? "w" : "-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IXGRP) ? "x" : "-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IROTH) ? "r" : "-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IWOTH) ? "w" : "-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IXOTH) ? "x" : "-");
-    write(STDOUT_FILENO, bufferForWrite, 1);
+    write(fdInUse, bufferForWrite, 1);
 
     lenOfStrLen = snprintf(NULL, 0, "%ld", fileStat.st_nlink);
     snprintf(bufferForWrite, lenOfStrLen + 2, "\t%ld", fileStat.st_nlink);
-    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    write(fdInUse, bufferForWrite, lenOfStrLen + 1);
     
     lenOfStrLen = snprintf(NULL, 0, "%ld", fileStat.st_size);
     snprintf(bufferForWrite, lenOfStrLen + 2, "\t%ld", fileStat.st_size);
-    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
+    write(fdInUse, bufferForWrite, lenOfStrLen + 1);
     
     get_mtime = fileStat.st_mtime;
     info = localtime(&get_mtime);
     strftime(timeBuff, sizeof(timeBuff), "%d.%m.%Y %H:%M:%S", info);
     lenOfStrLen = strlen(timeBuff);
     snprintf(bufferForWrite, lenOfStrLen + 3, "\t%s\n", timeBuff);
-    write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 2);
+    write(fdInUse, bufferForWrite, lenOfStrLen + 2);
     return 0;
 }
 
