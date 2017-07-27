@@ -661,7 +661,8 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
                 return NULL;
             }
             close(fileDescriptors[1]);
-            read (fileDescriptors[0], importToBuff, 1024);
+            int closeBuff = read(fileDescriptors[0], importToBuff, 1024);
+            importToBuff[closeBuff] = '\0';
             close(fileDescriptors[0]);
             matchingBrace--;
             origBuffLoc++;
@@ -695,7 +696,14 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         //printf("%c\n",importToBuff[removeNewLine]);
         if (importToBuff[removeNewLine] == '\n')
         {
-            importToBuff[removeNewLine] = ' ';
+            if (importToBuff[removeNewLine + 1] == '\0')
+            {
+                importToBuff[removeNewLine] = '\0';
+            }
+            else
+            {
+                importToBuff[removeNewLine] = ' ';
+            }
         }
         removeNewLine++;
     }
