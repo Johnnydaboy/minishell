@@ -115,20 +115,20 @@ void aechoBuiltIn (char **line, int numArgs)
             {
                 lenOfStrLen = strlen(line[counterb]);
                 snprintf(bufferForWrite, lenOfStrLen + 1, "%s", line[counterb]);
-                write(fdInUse, bufferForWrite, lenOfStrLen);
+                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen);
                 finish = true;
             }
             else if (line[counterb] != 0)
             {
                 lenOfStrLen = strlen(line[counterb]);
                 snprintf(bufferForWrite, lenOfStrLen + 2, "%s ", line[counterb]);
-                write(fdInUse, bufferForWrite, lenOfStrLen + 1);
+                write(STDOUT_FILENO, bufferForWrite, lenOfStrLen + 1);
                 counterb++;
             }
         }
     }
     
-    // This is the implementation for the standard of echo
+    // This is the implementation for the standard of echobodies
     else 
     {
         while (finish == false)

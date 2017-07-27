@@ -33,6 +33,8 @@ int main(int mainargc, char **mainargv)
     margc = mainargc;
     margv = mainargv;
     int arr[2];
+    arr[0] = 1;
+    arr[1] = 1;
     if (mainargc == 1)
     {
         while (1) 
@@ -195,6 +197,11 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
     if (numOfArg != 1)
     {
         runforkPro = builtInFunc(location, numOfArg, fd);
+        if (runforkPro == true)
+        {
+            dup2(fd[1], 1);
+            close(fd[0]);
+        }
     }
     else
     {

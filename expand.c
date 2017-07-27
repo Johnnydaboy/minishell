@@ -658,6 +658,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
             if (functional == 1)
             {
                 printf("Error\n");
+                return NULL;
             }
             close(fileDescriptors[1]);
             read (fileDescriptors[0], importToBuff, 1024);
@@ -678,15 +679,35 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     if (matchingBrace < 0)
     {
         printf("Matching parentheses not found\n");
+        exit(127);
         return NULL;
+    }
+    /*
+    else if (matchingBrace > 0)
+    {
+        printf("Matching parentheses not found\n");
+        return NULL;
+    }
+    */
+    int removeNewLine = 0;
+    while (importToBuff[removeNewLine] != '\0')
+    {
+        //printf("%c\n",importToBuff[removeNewLine]);
+        if (importToBuff[removeNewLine] == '\n')
+        {
+        importToBuff[removeNewLine] = '\0';
+        }
+        removeNewLine++;
     }
     int copyOver = 0;
     while (importToBuff[copyOver] != '\0')
     {
+        /*
         if (importToBuff[copyOver] == '\n')
         {
             importToBuff[copyOver] = '\0';
         }
+        */
         newBuff[copyOver] = importToBuff[copyOver];
         counterForNew++;
         copyOver++;
