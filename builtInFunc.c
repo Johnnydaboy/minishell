@@ -304,8 +304,8 @@ int DisplayToConsole(char *filename)
 
     lenOfStrLen = strlen(filename);
     snprintf(bufferForWrite, lenOfStrLen + 1, "%s", filename);
-    write(fdInUse, bufferForWrite, lenOfStrLen + 1);
-    
+    write(fdInUse, bufferForWrite, lenOfStrLen);
+
     pwd = getpwuid(fileStat.st_uid);
     lenOfStrLen = strlen(pwd->pw_name);
     snprintf(bufferForWrite, lenOfStrLen + 2, "\t%s", pwd->pw_name);
