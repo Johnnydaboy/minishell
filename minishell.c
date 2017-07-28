@@ -136,6 +136,7 @@ void forkProcess (char **line, int fd[])
     /* Check for who we are! */
     if (cpid == 0) {
       /* We are the child! */
+      //If this is the main process then this won't run 
       if (fd[1] != 1)
       {
         dup2(fd[1], 1);
@@ -208,6 +209,8 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
         }
         */
         //close(fd[0]);
+        //issue with closing them is that these aren't file descriptors but to check if they are 1 makes sure they are correct
+        // MAY HAVE TO CLOSE THE FILE DESCRIPTORS EVENTUALLY? IF THE FIX FOR FORK DOESN'T WORK
     }
     else
     {
