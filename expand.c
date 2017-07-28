@@ -667,17 +667,20 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
             matchingBrace--;
             origBuffLoc++;
             counterForOld++;
+            break;
         }
         else if (*origBuffLoc == ')' && matchingBrace > 1)
         {
             matchingBrace--;
         }
+        //skipping the ) here
         cmdExpandBuf[ctrForcmdExp] = *origBuffLoc;
         ctrForcmdExp++;
         origBuffLoc++;
         counterForOld++;
     }
-    if (matchingBrace < 0)
+    
+    if (matchingBrace > 0)
     {
         printf("Matching parentheses not found\n");
         exit(127);
