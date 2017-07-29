@@ -629,7 +629,7 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
 
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
-    int sizeForBuf = 205000;
+    int sizeForBuf = 203000;
     int matchingBrace = 1;
     int counterForOld = 0;
     int counterForNew = 0;
@@ -646,9 +646,16 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         else if (origBuffLoc[findbrace] == ')' && matchingBrace == 1)
         {
             origBuffLoc[findbrace] = '\0';
+            /*
             if (pipe(fileDescriptors) == -1)
             {
                 printf("Error\n");
+            }
+            */
+            int fd = open("mydata.txt", O_RDWR);
+            if (fd == -1)
+            {
+                printf("ERROR\n");
             }
             int functional = processLine(origBuffLoc, ecmdExpandBuf, fileDescriptors);
             if (functional == 1)
@@ -657,7 +664,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
                 return NULL;
             }
             close(fileDescriptors[1]);
-            int closeBuff = read(fileDescriptors[0], ecmdExpandBuf, 203000);
+            int closeBuff = read(fileDescriptors[0], ecmdExpandBuf, sizeForBuf);
             ecmdExpandBuf[closeBuff] = '\0';
             close(fileDescriptors[0]);
             

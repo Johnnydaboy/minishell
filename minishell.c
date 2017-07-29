@@ -24,8 +24,10 @@ int processLine (char *buffer, char *expandBuffer, int fd[]);
 /* Shell main */
 int main(int mainargc, char **mainargv)
 {
-    char   buffer [LINELEN];
-    char   expandBuffer [LINELEN];
+    //char   buffer [LINELEN];
+    char* buffer = (char*)malloc(sizeof(char) * LINELEN);
+    //char   expandBuffer [LINELEN];
+    char* expandBuffer = (char*)malloc(sizeof(char) * LINELEN);
     int    len;
     FILE * fileopener;
     int countercc;
@@ -119,7 +121,8 @@ int main(int mainargc, char **mainargv)
 
     return 0; /* Also known as exit (0); */
 }
-
+//echo $(./gen 65537)
+//65536
 // Runs a library program if a built in command wasn't called
 void forkProcess (char **line, int fd[])
 {
@@ -142,7 +145,7 @@ void forkProcess (char **line, int fd[])
         dup2(fd[1], 1);
         close(fd[0]);
       }
-      execvp (line[0], &line[0]);
+      execvp (line[0], line);
       perror ("exec");
       exit (127);
     }
