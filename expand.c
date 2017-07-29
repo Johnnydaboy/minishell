@@ -176,7 +176,7 @@ char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * co
     }
     newBuff[cpyover] = '\0';
     *counterNew = cpyover;
-    printf("newBuff is %s\n", newBuff);
+    //printf("newBuff is %s\n", newBuff);
     return newBuff;
 }
 
@@ -187,7 +187,7 @@ char * expandPid (char * origBuffLoc, char * newBuff, int * counter, int * count
     sprintf(newBuff,"%d", envint);
     int cNew = strlen(newBuff);
     *counterNew = cNew;
-    printf("%s\n", newBuff);
+    //printf("%s\n", newBuff);
     return newBuff;
 }
 
@@ -631,12 +631,18 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
 
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
+    int sizeForBuf = 205000;
     int matchingBrace = 1;
     int counterForOld = 0;
     int counterForNew = 0;
-    char cmdExpandBuf[1024];
-    char ecmdExpandBuf[1024];
-    char importToBuff[1024];
+    //char cmdExpandBuf[1024];
+    //kill
+    char* cmdExpandBuf = (char *) malloc (205000);
+    //char ecmdExpandBuf[1024];
+    char* ecmdExpandBuf = (char *) malloc (205000);
+    //char importToBuff[1024];
+    //kill
+    char* importToBuff = (char *) malloc (205000);
     int fileDescriptors[2];
     //fileDescriptors[0] = 1;
     //fileDescriptors[1] = 1;
@@ -661,9 +667,11 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
                 return NULL;
             }
             close(fileDescriptors[1]);
+            // expand cmd buffer can be reused use in place of importToBuff 
             int closeBuff = read(fileDescriptors[0], importToBuff, 1024);
             importToBuff[closeBuff] = '\0';
             close(fileDescriptors[0]);
+            
             matchingBrace--;
             origBuffLoc++;
             counterForOld++;
@@ -673,7 +681,6 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         {
             matchingBrace--;
         }
-        //skipping the ) here
         cmdExpandBuf[ctrForcmdExp] = *origBuffLoc;
         ctrForcmdExp++;
         origBuffLoc++;
@@ -708,6 +715,11 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
                 importToBuff[removeNewLine] = ' ';
             }
         }
+        if (removeNewLine > 200000)
+        {
+            printf("Too many characters exiting...\n");
+            exit(127);
+        }
         removeNewLine++;
     }
     /*
@@ -736,6 +748,9 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     *counterNew = counterForNew;
     *counter = counterForOld;
     newBuff[copyOver] = '\0';
+    free (cmdExpandBuf);
+    free (ecmdExpandBuf);
+    free (importToBuff);
     return newBuff;
 }
 

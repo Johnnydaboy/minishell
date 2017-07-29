@@ -10,7 +10,7 @@
 
 /* Constants */ 
 
-#define LINELEN 1024
+#define LINELEN 205000
 
 int margc;
 char **margv;
@@ -54,7 +54,7 @@ int main(int mainargc, char **mainargv)
                 break;
             }
             
-            /* Get rid of \n at end of buffer. */
+            /* Get rid byteof \n at end of buffer. */
             len = strlen(buffer);
             if (buffer[len-1] == '\n')
             {
@@ -147,10 +147,11 @@ void forkProcess (char **line, int fd[])
       exit (127);
     }
     /* Have the parent wait for child to complete */
+    //printf("waiting?\n");
+    //wait function is just waiting...
     if (wait (&status) < 0) {
       perror ("wait");
     }
-    
     if (WIFEXITED(status))
     {
         exitStatus = WEXITSTATUS(status);
@@ -158,6 +159,9 @@ void forkProcess (char **line, int fd[])
     }
 }
 
+/* 0 = sucess
+   1 = error
+ */
 int processLine (char *buffer, char *expandBuffer, int fd[])
 {
     char ** location;
