@@ -34,9 +34,7 @@ int main(int mainargc, char **mainargv)
     int functional; 
     margc = mainargc;
     margv = mainargv;
-    int arr[2];
-    arr[0] = 1;
-    arr[1] = 1;
+    int arr = 1;
     if (mainargc == 1)
     {
         while (1) 
@@ -124,7 +122,7 @@ int main(int mainargc, char **mainargv)
 //echo $(./gen 65537)
 //65536
 // Runs a library program if a built in command wasn't called
-void forkProcess (char **line, int fd[])
+void forkProcess (char **line, int fd)
 {
     pid_t  cpid;
     int status;
@@ -140,10 +138,10 @@ void forkProcess (char **line, int fd[])
     if (cpid == 0) {
       /* We are the child! */
       //If this is the main process then this won't run 
-      if (fd[1] != 1)
+      if (fd != 1)
       {
-        dup2(fd[1], 1);
-        close(fd[0]);
+        close(1);
+        
       }
       execvp (line[0], line);
       perror ("exec");
@@ -165,7 +163,7 @@ void forkProcess (char **line, int fd[])
 /* 0 = sucess
    1 = error
  */
-int processLine (char *buffer, char *expandBuffer, int fd[])
+int processLine (char *buffer, char *expandBuffer, int fd)
 {
     char ** location;
     int numOfArg = 0;
