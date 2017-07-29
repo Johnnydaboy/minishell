@@ -627,8 +627,97 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
     return newBuff;
 }
 
+char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+{
+    int sizeForBuf = 205000;
+    int matchingBrace = 1;
+    int counterForOld = 0;
+    int counterForNew = 0;
+    char* ecmdExpandBuf = (char *) malloc (sizeof(char) * sizeForBuf);
+    int fileDescriptors[2];
+    //int ctrForcmdExp = 0;
+    int findbrace = 0;
+    while (origBuffLoc[findbrace] != '\0' && matchingBrace >= 1)
+    {
+        if (origBuffLoc[findbrace] == '(')
+        {
+            matchingBrace++;
+        }
+        else if (origBuffLoc[findbrace] == ')' && matchingBrace == 1)
+        {
+            origBuffLoc[findbrace] = '\0';
+            if (pipe(fileDescriptors) == -1)
+            {
+                printf("Error\n");
+            }
+            int functional = processLine(origBuffLoc, ecmdExpandBuf, fileDescriptors);
+            if (functional == 1)
+            {
+                printf("Error\n");
+                return NULL;
+            }
+            close(fileDescriptors[1]);
+            int closeBuff = read(fileDescriptors[0], ecmdExpandBuf, 203000);
+            ecmdExpandBuf[closeBuff] = '\0';
+            close(fileDescriptors[0]);
+            
+            origBuffLoc[findbrace] = ')';
+            counterForOld++;
+            findbrace++;
+            matchingBrace--;
+            break;
+        }
+        else if (origBuffLoc[findbrace] == ')' && matchingBrace > 1)
+        {
+            matchingBrace--;
+        }
+        findbrace++;
+        counterForOld++;
+    }
+    if (matchingBrace > 0)
+    {
+        printf("Matching parentheses not found\n");
+        exit(127);
+        return NULL;
+    }
+    int removeNewLine = 0;
+    while (ecmdExpandBuf[removeNewLine] != '\0')
+    {
+        //printf("%c\n",importToBuff[removeNewLine]);
+        if (ecmdExpandBuf[removeNewLine] == '\n')
+        {
+            if (ecmdExpandBuf[removeNewLine + 1] == '\0')
+            {
+                ecmdExpandBuf[removeNewLine] = '\0';
+            }
+            else
+            {
+                ecmdExpandBuf[removeNewLine] = ' ';
+            }
+        }
+        if (removeNewLine > 200000)
+        {
+            printf("Too many characters exiting...\n");
+            exit(127);
+        }
+        removeNewLine++;
+    }
+    int copyOver = 0;
+    while (ecmdExpandBuf[copyOver] != '\0')
+    {
+        newBuff[copyOver] = ecmdExpandBuf[copyOver];
+        counterForNew++;
+        copyOver++;
+    }
+    *counterNew = counterForNew;
+    *counter = counterForOld;
+    newBuff[copyOver] = '\0';
+    free (ecmdExpandBuf);
+    return newBuff;
+}
 
 
+/*
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int sizeForBuf = 205000;
@@ -693,13 +782,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         exit(127);
         return NULL;
     }
-    /*
-    else if (matchingBrace > 0)
-    {
-        printf("Matching parentheses not found\n");
-        return NULL;
-    }
-    */
+
     int removeNewLine = 0;
     while (importToBuff[removeNewLine] != '\0')
     {
@@ -722,25 +805,9 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         }
         removeNewLine++;
     }
-    /*
-    if (importToBuff[removeNewLine] != '\0')
-    {
-        // change to \n or ' '
-        if (importToBuff[removeNewLine - 1] == '\n')
-        {
-            importToBuff[removeNewLine - 1] = '\0';
-        }
-    }
-    */
     int copyOver = 0;
     while (importToBuff[copyOver] != '\0')
     {
-        /*
-        if (importToBuff[copyOver] == '\n')
-        {
-            importToBuff[copyOver] = '\0';
-        }
-        */
         newBuff[copyOver] = importToBuff[copyOver];
         counterForNew++;
         copyOver++;
@@ -753,7 +820,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     free (importToBuff);
     return newBuff;
 }
-
+*/
 
 
 
