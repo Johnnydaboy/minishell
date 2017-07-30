@@ -1,3 +1,4 @@
+#define LINELEN 205000
 extern int margc;
 extern char **margv;
 extern bool runFourFunctions;
@@ -6,4 +7,4 @@ extern bool enterShift;
 extern bool normalExit;
 extern int exitStatus;
 extern char prompt[1024];
-extern int processLine (char *buffer, char *expandBuffer, int fd[]);
+extern int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);

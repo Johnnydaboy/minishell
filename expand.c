@@ -629,11 +629,11 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
 
 char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
-    int sizeForBuf = 203000;
+    int sizeForBuf = 10;
     int matchingBrace = 1;
     int counterForOld = 0;
     int counterForNew = 0;
-    char* ecmdExpandBuf = (char *) malloc (sizeof(char) * sizeForBuf);
+    char* ecmdExpandBuf = (char *) malloc (sizeof(char) * LINELEN);
     int fileDescriptors[2];
     //int ctrForcmdExp = 0;
     int findbrace = 0;
@@ -646,26 +646,34 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         else if (origBuffLoc[findbrace] == ')' && matchingBrace == 1)
         {
             origBuffLoc[findbrace] = '\0';
-            /*
             if (pipe(fileDescriptors) == -1)
             {
                 printf("Error\n");
             }
-            */
-            int fd = open("mydata.txt", O_RDWR);
-            if (fd == -1)
-            {
-                printf("ERROR\n");
-            }
-            int functional = processLine(origBuffLoc, ecmdExpandBuf, fileDescriptors);
+            int doWait = 1;
+            int functional = processLine(origBuffLoc, ecmdExpandBuf, fileDescriptors, doWait);
             if (functional == 1)
             {
                 printf("Error\n");
                 return NULL;
             }
             close(fileDescriptors[1]);
-            int closeBuff = read(fileDescriptors[0], ecmdExpandBuf, sizeForBuf);
-            ecmdExpandBuf[closeBuff] = '\0';
+            int closeBuffTotal = 0;
+            bool readAll = false;
+            int closeBuff;
+            char * ptrToecmd = ecmdExpandBuf;
+            while (readAll == false)
+            {
+                closeBuff = read(fileDescriptors[0], ptrToecmd, sizeForBuf);
+                if (closeBuff == 0)
+                {
+                    wait(NULL);
+                    readAll = true;
+                }
+                closeBuffTotal = closeBuffTotal + closeBuff;
+                ptrToecmd = ptrToecmd + closeBuff;
+            }
+            ecmdExpandBuf[closeBuffTotal] = '\0';
             close(fileDescriptors[0]);
             
             origBuffLoc[findbrace] = ')';
@@ -690,7 +698,6 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     int removeNewLine = 0;
     while (ecmdExpandBuf[removeNewLine] != '\0')
     {
-        //printf("%c\n",importToBuff[removeNewLine]);
         if (ecmdExpandBuf[removeNewLine] == '\n')
         {
             if (ecmdExpandBuf[removeNewLine + 1] == '\0')
@@ -702,13 +709,14 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
                 ecmdExpandBuf[removeNewLine] = ' ';
             }
         }
-        if (removeNewLine > 200000)
+        if (removeNewLine >= 200000)
         {
-            printf("Too many characters exiting...\n");
-            exit(127);
+            printf("Too many characters");
+            return NULL;
         }
         removeNewLine++;
     }
+    //printf("%d\n", removeNewLine);
     int copyOver = 0;
     while (ecmdExpandBuf[copyOver] != '\0')
     {
@@ -722,112 +730,6 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     free (ecmdExpandBuf);
     return newBuff;
 }
-
-
-/*
-char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
-{
-    int sizeForBuf = 205000;
-    int matchingBrace = 1;
-    int counterForOld = 0;
-    int counterForNew = 0;
-    //char cmdExpandBuf[1024];
-    //kill
-    char* cmdExpandBuf = (char *) malloc (205000);
-    //char ecmdExpandBuf[1024];
-    char* ecmdExpandBuf = (char *) malloc (205000);
-    //char importToBuff[1024];
-    //kill
-    char* importToBuff = (char *) malloc (205000);
-    int fileDescriptors[2];
-    //fileDescriptors[0] = 1;
-    //fileDescriptors[1] = 1;
-    int ctrForcmdExp = 0;
-    while (*origBuffLoc != '\0' && matchingBrace >= 1)
-    {
-        if (*origBuffLoc == '(')
-        {
-            matchingBrace++;
-        }
-        else if (*origBuffLoc == ')' && matchingBrace == 1)
-        {
-            if (pipe(fileDescriptors) == -1)
-            {
-                printf("Error\n");
-            }
-            cmdExpandBuf[ctrForcmdExp] = '\0';
-            int functional = processLine(cmdExpandBuf, ecmdExpandBuf, fileDescriptors);
-            if (functional == 1)
-            {
-                printf("Error\n");
-                return NULL;
-            }
-            close(fileDescriptors[1]);
-            // expand cmd buffer can be reused use in place of importToBuff 
-            int closeBuff = read(fileDescriptors[0], importToBuff, 1024);
-            importToBuff[closeBuff] = '\0';
-            close(fileDescriptors[0]);
-            
-            matchingBrace--;
-            origBuffLoc++;
-            counterForOld++;
-            break;
-        }
-        else if (*origBuffLoc == ')' && matchingBrace > 1)
-        {
-            matchingBrace--;
-        }
-        cmdExpandBuf[ctrForcmdExp] = *origBuffLoc;
-        ctrForcmdExp++;
-        origBuffLoc++;
-        counterForOld++;
-    }
-    
-    if (matchingBrace > 0)
-    {
-        printf("Matching parentheses not found\n");
-        exit(127);
-        return NULL;
-    }
-
-    int removeNewLine = 0;
-    while (importToBuff[removeNewLine] != '\0')
-    {
-        //printf("%c\n",importToBuff[removeNewLine]);
-        if (importToBuff[removeNewLine] == '\n')
-        {
-            if (importToBuff[removeNewLine + 1] == '\0')
-            {
-                importToBuff[removeNewLine] = '\0';
-            }
-            else
-            {
-                importToBuff[removeNewLine] = ' ';
-            }
-        }
-        if (removeNewLine > 200000)
-        {
-            printf("Too many characters exiting...\n");
-            exit(127);
-        }
-        removeNewLine++;
-    }
-    int copyOver = 0;
-    while (importToBuff[copyOver] != '\0')
-    {
-        newBuff[copyOver] = importToBuff[copyOver];
-        counterForNew++;
-        copyOver++;
-    }
-    *counterNew = counterForNew;
-    *counter = counterForOld;
-    newBuff[copyOver] = '\0';
-    free (cmdExpandBuf);
-    free (ecmdExpandBuf);
-    free (importToBuff);
-    return newBuff;
-}
-*/
 
 
 

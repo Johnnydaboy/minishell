@@ -7,10 +7,7 @@
 #include <sys/wait.h>
 #include <stdbool.h>
 #include "proto.h"
-
-/* Constants */ 
-
-#define LINELEN 205000
+#include "globals.h"
 
 int margc;
 char **margv;
@@ -18,8 +15,8 @@ int exitStatus;
 char prompt[1024];
 
 /* Prototypes */
-void forkProcess (char **line, int fd[]);
-int processLine (char *buffer, char *expandBuffer, int fd[]);
+void forkProcess (char **line, int fd[], int doWait);
+int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);
 
 /* Shell main */
 int main(int mainargc, char **mainargv)
@@ -34,6 +31,7 @@ int main(int mainargc, char **mainargv)
     int functional; 
     margc = mainargc;
     margv = mainargv;
+    int doWait = 0;
     int arr[2];
     arr[0] = 1;
     arr[1] = 1;
@@ -63,7 +61,7 @@ int main(int mainargc, char **mainargv)
                 buffer[len-1] = 0;
             }
             
-            functional = processLine (buffer, expandBuffer, arr);
+            functional = processLine (buffer, expandBuffer, arr, doWait);
             if (functional == 1)
             {
                 continue;
@@ -96,7 +94,7 @@ int main(int mainargc, char **mainargv)
             else if (*buffptr1 == '\n')
             {  
                 *buffptr1 = 0;
-                functional = processLine(buffer, expandBuffer, arr);
+                functional = processLine(buffer, expandBuffer, arr, doWait);
                 *buffptr1 = '\n';
                 if (functional == 1)
                 {
@@ -111,7 +109,7 @@ int main(int mainargc, char **mainargv)
         }
         if (*buffptr1 == 0)
         {
-            functional = processLine(buffer, expandBuffer, arr);
+            functional = processLine(buffer, expandBuffer, arr, doWait);
             if (functional == 1)
             {
                 printf("Error \n");
@@ -124,7 +122,7 @@ int main(int mainargc, char **mainargv)
 //echo $(./gen 65537)
 //65536
 // Runs a library program if a built in command wasn't called
-void forkProcess (char **line, int fd[])
+void forkProcess (char **line, int fd[], int doWait)
 {
     pid_t  cpid;
     int status;
@@ -152,8 +150,12 @@ void forkProcess (char **line, int fd[])
     /* Have the parent wait for child to complete */
     //printf("waiting?\n");
     //wait function is just waiting...
-    if (wait (&status) < 0) {
-      perror ("wait");
+    if (doWait != 1)
+    {
+        if (wait (&status) < 0) 
+        {
+          perror ("wait");
+        }
     }
     if (WIFEXITED(status))
     {
@@ -165,7 +167,7 @@ void forkProcess (char **line, int fd[])
 /* 0 = sucess
    1 = error
  */
-int processLine (char *buffer, char *expandBuffer, int fd[])
+int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
 {
     char ** location;
     int numOfArg = 0;
@@ -188,6 +190,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
         checkForPoundSign++;
     }
     int successfulExpand = expand(buffer, expandBuffer, LINELEN);
+    //printf("%s\n", expandBuffer);
     // Running arg_parse in order to return the arguments in a seperated string array format
     if (successfulExpand != 0)
     {
@@ -208,6 +211,10 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
     if (numOfArg != 1)
     {
         runforkPro = builtInFunc(location, numOfArg, fd);
+        if (runforkPro == true)
+        {
+            doWait = 0;
+        }
         /*
         if (runforkPro == true)
         {
@@ -231,7 +238,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[])
         // This makes sure that processline doesn't run if a built in function was called
         if (runforkPro == false)
         {
-            forkProcess (location, fd);
+            forkProcess (location, fd, doWait);
         }
     }
     
