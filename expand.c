@@ -16,7 +16,6 @@
 #include "proto.h"
 #include "globals.h"
 
-#define tempFileName "mydata.txt"
 bool normalExit = true;
 int whatInz;
 int whatDollar;
@@ -635,7 +634,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     int counterForOld = 0;
     int counterForNew = 0;
     char* ecmdExpandBuf = (char *) malloc (sizeof(char) * sizeForBuf);
-    //int fileDescriptors[2];
+    int fileDescriptors[2];
     //int ctrForcmdExp = 0;
     int findbrace = 0;
     while (origBuffLoc[findbrace] != '\0' && matchingBrace >= 1)
@@ -653,20 +652,21 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
                 printf("Error\n");
             }
             */
-            int fd = open(tempFileName, O_RDWR);
+            int fd = open("mydata.txt", O_RDWR);
             if (fd == -1)
             {
                 printf("ERROR\n");
             }
-            int functional = processLine(origBuffLoc, ecmdExpandBuf, fd);
+            int functional = processLine(origBuffLoc, ecmdExpandBuf, fileDescriptors);
             if (functional == 1)
             {
                 printf("Error\n");
                 return NULL;
             }
-            int closeBuff = read(fd, ecmdExpandBuf, sizeForBuf);
+            close(fileDescriptors[1]);
+            int closeBuff = read(fileDescriptors[0], ecmdExpandBuf, sizeForBuf);
             ecmdExpandBuf[closeBuff] = '\0';
-            close(fd);
+            close(fileDescriptors[0]);
             
             origBuffLoc[findbrace] = ')';
             counterForOld++;
