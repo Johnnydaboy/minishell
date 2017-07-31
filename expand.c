@@ -75,6 +75,8 @@ int expand (char *orig, char *new, int newsize)
                 // counter (orig counter is inputC) is added to the original buffer in order to skip ahead what is found in findInz
                 // ^ (new counter is inputNew) same applies to counterNew but with newBuff rather
                 char * copyOver = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
+                printf("%d\n", inputNew);
+                printf("%d\n", inputC);
                 // If it fail and no } is found it will print an error statement
                 if (inputNew == -1)
                 {
@@ -152,7 +154,6 @@ char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * co
             return NULL;
         }
     }
-    
     *origBuffLoc = '\0';
     count++;
     *counter = count;
@@ -709,7 +710,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
                 ecmdExpandBuf[removeNewLine] = ' ';
             }
         }
-        if (removeNewLine >= 200000)
+        if (removeNewLine >= LINELEN)
         {
             printf("Too many characters");
             return NULL;

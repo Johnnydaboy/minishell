@@ -1,4 +1,4 @@
-#define LINELEN 205000
+#define LINELEN 200000
 extern int margc;
 extern char **margv;
 extern bool runFourFunctions;
