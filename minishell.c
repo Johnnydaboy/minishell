@@ -190,7 +190,19 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
         checkForPoundSign++;
     }
     int successfulExpand = expand(buffer, expandBuffer, LINELEN);
-    printf("gggggkasjdlkj asdklioawd alkjfaskl oifuj sei kljf auifhh lfjhasd fhsdjalfkjlksdfj ljsdlkfjlsj%s\n", expandBuffer);
+    //printf("se%d\n", successfulExpand);
+    if (successfulExpand == -1)
+    {
+        return 1;
+    }
+    /*
+    else if (successfulExpand > LINELEN)
+    {
+        printf("Error: Too many characters\n");
+        return 1;
+    }
+    */
+    //printf("gggggkasjdlkj asdklioawd alkjfaskl oifuj sei kljf auifhh lfjhasd fhsdjalfkjlksdfj ljsdlkfjlsj%s\n", expandBuffer);
     // Running arg_parse in order to return the arguments in a seperated string array format
     if (successfulExpand != 0)
     {

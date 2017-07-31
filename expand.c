@@ -21,16 +21,16 @@ int whatInz;
 int whatDollar;
 int findInz (char * orig, char * Inz);
 bool isQuote;
-char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * expandPid (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int expandPid (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 int comparisionFunc(char * comparBuf, char * dirBuf);
-char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
-char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+int commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
 // This function takes in two character arrays and writes to the new buffer by reading from the old buffer, newsize is the length of array new
 // In a failure case this function will return a 0 and otherwise it returns 1
 int expand (char *orig, char *new, int newsize)
@@ -48,7 +48,7 @@ int expand (char *orig, char *new, int newsize)
     Inz[8] = "~";
     int whereIsInz = 0;
     int whereIsNew = 0;
-    typedef char *(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+    typedef int(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
     funcInz funcInzArr[lenOfFuncArr];
     funcInzArr[0] = expandEnvVar;
     funcInzArr[1] = expandPid;
@@ -61,6 +61,7 @@ int expand (char *orig, char *new, int newsize)
     funcInzArr[8] = expandHomeDir;
     int lenOfParam = 0;
     // This while loop will continue to execute until the orig string reads at 0 
+    int moveOver = 1;
     while (orig[whereIsInz] != 0)
     {
         for (whatInz = 0; whatInz < lenOfFuncArr; whatInz++)
@@ -74,9 +75,11 @@ int expand (char *orig, char *new, int newsize)
                 whereIsInz = whereIsInz + lenOfParam;
                 // counter (orig counter is inputC) is added to the original buffer in order to skip ahead what is found in findInz
                 // ^ (new counter is inputNew) same applies to counterNew but with newBuff rather
-                char * copyOver = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
-                printf("%d\n", inputNew);
-                printf("%d\n", inputC);
+                moveOver = (*funcInzArr[whatInz])(&orig[whereIsInz], new, &inputC, &inputNew);
+                if (moveOver == -1)
+                {
+                    return -1;
+                }
                 // If it fail and no } is found it will print an error statement
                 if (inputNew == -1)
                 {
@@ -112,7 +115,7 @@ int expand (char *orig, char *new, int newsize)
         }
     }
     *new = '\0';
-    return 1;
+    return moveOver;
 }
 
 // This function finds the next initilizing variable and returns the location of it if any
@@ -137,7 +140,7 @@ int findInz (char * orig, char * Inz)
 }
 
 // This is the first expand subfunction which does and expand to ${} 
-char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+int expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     char * ptr2temp;
     int count = 0;
@@ -151,7 +154,7 @@ char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * co
         if (*origBuffLoc == 0)
         {
             *counterNew = -1;
-            return NULL;
+            return -1;
         }
     }
     *origBuffLoc = '\0';
@@ -160,14 +163,14 @@ char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * co
     
     if (count == 1)
     {
-        return NULL;
+        return -1;
     }
     
     
     char * envstr = getenv(ptr2temp);
     if (envstr == NULL)
     {
-        return NULL;
+        return -1;
     }
     int cpyover = 0;
     while (envstr[cpyover] != '\0')
@@ -178,21 +181,21 @@ char * expandEnvVar (char * origBuffLoc, char * newBuff, int * counter, int * co
     newBuff[cpyover] = '\0';
     *counterNew = cpyover;
     //printf("newBuff is %s\n", newBuff);
-    return newBuff;
+    return *counterNew;
 }
 
 // The second expand subfunction which expands the $$ environment
-char * expandPid (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+int expandPid (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int envint = getppid();
     sprintf(newBuff,"%d", envint);
     int cNew = strlen(newBuff);
     *counterNew = cNew;
     //printf("%s\n", newBuff);
-    return newBuff;
+    return *counterNew;
 }
 
-char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+int expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int argsHere = 0;
     if (margc == 1)
@@ -200,7 +203,7 @@ char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * c
         argsHere = margc;
         sprintf(newBuff, "%d", argsHere);
         *counterNew = strlen(newBuff);
-        return newBuff;
+        return *counterNew;
     }
     else
     {
@@ -208,10 +211,10 @@ char * expandNumArgs (char * origBuffLoc, char * newBuff, int * counter, int * c
     }
     sprintf(newBuff, "%d", argsHere);
     *counterNew = strlen(newBuff);
-    return newBuff;
+    return *counterNew;
 }
 
-char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+int expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int envint;
     if (normalExit == true)
@@ -219,7 +222,7 @@ char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int *
         sprintf(newBuff, "%d", exitStatus);
         int cNew = strlen(newBuff);
         *counterNew = cNew;
-        return newBuff;
+        return *counterNew;
     }
     else if (normalExit == false)
     {
@@ -229,11 +232,10 @@ char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int *
     {
         envint = 127;
     }
-    
     sprintf(newBuff,"%d", envint);
     int cNew = strlen(newBuff);
     *counterNew = cNew;
-    return newBuff;
+    return *counterNew;
 }
 
 
@@ -241,7 +243,7 @@ char * expandProcessId (char * origBuffLoc, char * newBuff, int * counter, int *
 
 
 
-char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+int expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int totalNum = 0;
     int length = 0;
@@ -252,7 +254,7 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
     if (*origBuffLoc == '\0' || *origBuffLoc == ' ' )
     {
         printf("error here\n");
-        return NULL;
+        return -1;
     }
     //This algorithm converts strings into ints using the ASCII table (look at reference from char and their decimal 
     // numbers)
@@ -266,7 +268,7 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
     if (enterNum == false)
     {
         newBuff[locForNewBuff] = '\0';
-        return newBuff;
+        return *counterNew;
     }
     if (totalNum == 0)
     {
@@ -303,7 +305,7 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
         newBuff[locForNewBuff] = '\0';
         *counter = length;
         *counterNew = strlen(newBuff);
-        return newBuff;
+        return *counterNew;
     }
     else if (totalNum != 0)
     {
@@ -321,7 +323,7 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
             newBuff[locForNewBuff] = '\0';
             *counter = length;
             *counterNew = strlen(newBuff);
-            return newBuff;
+            return *counterNew;
         }
         char tempCpyMargv[1024];
         char * ptrToTemp = tempCpyMargv;
@@ -346,17 +348,17 @@ char * expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * 
         newBuff[locForNewBuff] = '\0';
         *counter = length;
         *counterNew = strlen(newBuff);
-        return newBuff;
+        return *counterNew;
     }
     else
     {
         printf("Error: Something has occured\n");
-        return NULL;
+        return -1;
     }
-    return newBuff;
+    return *counterNew;
 }
 
-char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+int wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     struct dirent *Dirent;
     DIR *dir;
@@ -373,7 +375,7 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
     if (dir == NULL)
     {
         printf ("Cannot open direcotry\n");
-        return NULL;
+        return -1;
     }
     bool matches = false;
     while ((Dirent = readdir(dir)) != NULL)
@@ -396,6 +398,7 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
         {
             printf("Error: / detected\n");
             break;
+            return -1;
         }
     }
     if (matches == false)
@@ -428,7 +431,7 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
         }
         *counterNew = strlen(newBuff);
         closedir(dir);
-        return newBuff;
+        return *counterNew;
     }
     loc--;
     newBuff[loc] = '\0';
@@ -447,7 +450,7 @@ char * wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * 
     }
     *counterNew = strlen(newBuff);
     closedir(dir);
-    return newBuff;
+    return *counterNew;
 }
 
 
@@ -469,7 +472,7 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
     int moveToLen = lenOfDir - lenOfBuff;
     if (moveToLen < 0)
     {
-        return (2);
+        return(2);
     }
     if (*comparBuf == '"')
     {
@@ -514,14 +517,14 @@ int comparisionFunc(char * comparBuf, char * dirBuf)
     return(1);
 }
 
-char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+int wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int loc = 0;
     newBuff[loc] = '*';
     loc++;
     newBuff[loc] = '\0';
     *counterNew = strlen(newBuff);
-    return newBuff;
+    return *counterNew;
 }
 
 
@@ -529,7 +532,7 @@ char * wildCardPrint (char * origBuffLoc, char * newBuff, int * counter, int * c
 
 
 
-char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+int expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     struct passwd *pwd;
     char buf[1024];
@@ -553,9 +556,9 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
         newBuff[counterf] = '\0';
         *counter = counterOld;
         *counterNew = strlen(newBuff);
-        return newBuff;
+        return *counterNew;
     }
-    if (*origBuffLoc == ' ' || *origBuffLoc == '\0' || *origBuffLoc == '/' || *origBuffLoc == '~')
+    if (*origBuffLoc == ' ' || *origBuffLoc == '\0' || *origBuffLoc == '/' || *origBuffLoc == '~' || *origBuffLoc == '"')
     {
         pwd = getpwuid(getuid());
         strcpy(buf, pwd->pw_dir);
@@ -574,9 +577,9 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
         newBuff[counterf] = '\0';
         *counter = counterOld;
         *counterNew = strlen(newBuff);
-        return newBuff;
+        return *counterNew;
     }
-    while (*origBuffLoc != ' ' && *origBuffLoc != '\0' && *origBuffLoc != '/' && *origBuffLoc != '~')
+    while (*origBuffLoc != ' ' && *origBuffLoc != '\0' && *origBuffLoc != '/' && *origBuffLoc != '~' && *origBuffLoc != '"')
     {
         ptrToBuffer[loc] = *origBuffLoc;
         counterOld++;
@@ -604,10 +607,38 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
         newBuff[counterf] = '\0';
         *counter = counterOld;
         *counterNew = strlen(newBuff);
-        return newBuff;
+        return *counterNew;
     }
     ptrToBuffer[loc] = '\0';
     pwd = getpwnam(buffer);
+    if (pwd == NULL)
+    {
+        //printf("%s\n",buffer);
+        int tocpy = 0;
+        int tocpyNew = 0;
+        newBuff[tocpyNew] = '~';
+        tocpyNew++;
+        while (buffer[tocpy] != '\0')
+        {
+            //printf("%c\n", buffer[tocpy]);
+            newBuff[tocpyNew] = buffer[tocpy];
+            //printf("%c\n", newBuff[tocpyNew]);
+            tocpy++;
+            tocpyNew++;
+        }
+        while(*origBuffLoc != '\0')
+        {
+            newBuff[tocpyNew] = *origBuffLoc;
+            tocpyNew++;
+            origBuffLoc++;
+            counterOld++;
+        }
+        newBuff[tocpyNew] = '\0';
+        *counter = counterOld;
+        *counterNew = tocpyNew;
+        //printf("%s\n", newBuff);
+        return *counterNew;
+    }
     strcpy(buf, pwd->pw_dir);
     int ctrForBuf = 0;
     while(ptrToBuf[ctrForBuf] != '\0')
@@ -625,10 +656,10 @@ char * expandHomeDir (char * origBuffLoc, char * newBuff, int * counter, int * c
     newBuff[ctrForBuf] = '\0';
     *counter = counterOld;
     *counterNew = strlen(newBuff);
-    return newBuff;
+    return *counterNew;
 }
 
-char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
+int commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * counterNew)
 {
     int sizeForBuf = 10;
     int matchingBrace = 1;
@@ -656,7 +687,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
             if (functional == 1)
             {
                 printf("Error\n");
-                return NULL;
+                return -1;
             }
             close(fileDescriptors[1]);
             int closeBuffTotal = 0;
@@ -693,8 +724,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     if (matchingBrace > 0)
     {
         printf("Matching parentheses not found\n");
-        exit(127);
-        return NULL;
+        return -1;
     }
     int removeNewLine = 0;
     while (ecmdExpandBuf[removeNewLine] != '\0')
@@ -712,8 +742,8 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
         }
         if (removeNewLine >= LINELEN)
         {
-            printf("Too many characters");
-            return NULL;
+            printf("Too many characters\n");
+            return -1;
         }
         removeNewLine++;
     }
@@ -729,7 +759,7 @@ char * commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int 
     *counter = counterForOld;
     newBuff[copyOver] = '\0';
     free (ecmdExpandBuf);
-    return newBuff;
+    return *counterNew;
 }
 
 
