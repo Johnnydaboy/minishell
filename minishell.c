@@ -15,6 +15,7 @@ char **margv;
 int exitStatus;
 char prompt[1024];
 int globalIntSigInt;
+int killChild = -1;
 
 /* Prototypes */
 void forkProcess (char **line, int fd[], int doWait);
@@ -26,6 +27,10 @@ void sigIntHandler (int signum)
     if (signum == SIGINT)
     {
         globalIntSigInt = signum;
+    }
+    if (killChild != -1)
+    {
+        kill(killChild, SIGINT);
     }
 }
 
@@ -50,7 +55,7 @@ int main(int mainargc, char **mainargv)
     act.sa_handler = sigIntHandler;
     act.sa_flags = SA_RESTART;
     sigemptyset (&act.sa_mask);
-    sigaction(SIGTSTP, &act, NULL);
+    //sigaction(SIGTSTP, &act, NULL);
     if(sigaction(SIGINT, &act, NULL) == -1)
     {
         perror("SIGACTION");
@@ -74,7 +79,6 @@ int main(int mainargc, char **mainargv)
             {
                 break;
             }
-            
             /* Get rid byteof \n at end of buffer. */
             len = strlen(buffer);
             if (buffer[len-1] == '\n')
@@ -168,6 +172,7 @@ void forkProcess (char **line, int fd[], int doWait)
       perror ("exec");
       exit (127);
     }
+    killChild = cpid;
     /* Have the parent wait for child to complete */
     //printf("waiting?\n");
     //wait function is just waiting...
