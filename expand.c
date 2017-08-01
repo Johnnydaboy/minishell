@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <signal.h>
 #include <pwd.h>
 #include <grp.h>
 

@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdbool.h>
+#include <signal.h>
 #include "proto.h"
 #include "globals.h"
 
@@ -13,10 +14,20 @@ int margc;
 char **margv;
 int exitStatus;
 char prompt[1024];
+int globalIntSigInt;
 
 /* Prototypes */
 void forkProcess (char **line, int fd[], int doWait);
 int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);
+
+void sigIntHandler (int signum)
+{
+    //sleep(1);
+    if (signum == SIGINT)
+    {
+        globalIntSigInt = signum;
+    }
+}
 
 /* Shell main */
 int main(int mainargc, char **mainargv)
@@ -26,7 +37,7 @@ int main(int mainargc, char **mainargv)
     //char   expandBuffer [LINELEN];
     char* expandBuffer = (char*)malloc(sizeof(char) * LINELEN);
     int    len;
-    FILE * fileopener;
+    FILE * fileopener; 
     int countercc;
     int functional; 
     margc = mainargc;
@@ -35,6 +46,16 @@ int main(int mainargc, char **mainargv)
     int arr[2];
     arr[0] = 1;
     arr[1] = 1;
+    struct sigaction act;
+    act.sa_handler = sigIntHandler;
+    act.sa_flags = SA_RESTART;
+    sigemptyset (&act.sa_mask);
+    sigaction(SIGTSTP, &act, NULL);
+    if(sigaction(SIGINT, &act, NULL) == -1)
+    {
+        perror("SIGACTION");
+    }
+    
     if (mainargc == 1)
     {
         while (1) 

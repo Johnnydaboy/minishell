@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdbool.h>
+#include <signal.h>
 #include "proto.h"
 /* This function takes in a string from the input of the GUI and returns the seperates the arguments with 
 memory locations and returns those memory locations */

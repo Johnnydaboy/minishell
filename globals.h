@@ -8,3 +8,4 @@ extern bool normalExit;
 extern int exitStatus;
 extern char prompt[1024];
 extern int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);
+extern int globalIntSigInt;
