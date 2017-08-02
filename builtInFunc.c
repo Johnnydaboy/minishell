@@ -92,7 +92,7 @@ void exitBuiltIn (char **line, int numArgs)
     {
         intStr = atoi (line[0]);
         exit(intStr);
-    }
+    } 
 }
 
 /* This is the second built in command which echo what every you type in and
@@ -111,7 +111,6 @@ void aechoBuiltIn (char **line, int numArgs)
         write(fdInUse, bufferForWrite, 1);
         return;
     }
-    
     // This is the implementation for the -n for the echo
     if (strcmp(line[0], "-n") == 0)
     {
@@ -184,8 +183,8 @@ void envsetBuiltIn (char **line, int numArgs)
     
     if (comparison == 0)
     {
-        int lenOfPrompt = strlen(envStr);
-        memcpy(prompt, envStr, lenOfPrompt);
+        //int lenOfPrompt = strlen(envStr);
+        strcpy(prompt, envStr);
     }
     setenv(line[0], envStr, 1);
 }

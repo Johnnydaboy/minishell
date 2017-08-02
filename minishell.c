@@ -73,7 +73,7 @@ int main(int mainargc, char **mainargv)
             }
             else
             {
-                fprintf (stderr, prompt);
+                fprintf (stderr, "%s", prompt);
             }
             if (fgets (buffer, LINELEN, stdin) != buffer)
             {
@@ -221,14 +221,6 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     {
         return 1;
     }
-    /*
-    else if (successfulExpand > LINELEN)
-    {
-        printf("Error: Too many characters\n");
-        return 1;
-    }
-    */
-    //printf("gggggkasjdlkj asdklioawd alkjfaskl oifuj sei kljf auifhh lfjhasd fhsdjalfkjlksdfj ljsdlkfjlsj%s\n", expandBuffer);
     // Running arg_parse in order to return the arguments in a seperated string array format
     if (successfulExpand != 0)
     {
