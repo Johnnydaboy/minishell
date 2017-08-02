@@ -107,7 +107,8 @@ void aechoBuiltIn (char **line, int numArgs)
     
     if (numArgs == 0)
     {
-        normalExit = false;
+        snprintf(bufferForWrite, 2, "\n");
+        write(fdInUse, bufferForWrite, 1);
         return;
     }
     
