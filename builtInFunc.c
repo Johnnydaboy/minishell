@@ -28,6 +28,7 @@ void shiftBuiltIn (char **line, int args);
 void unShiftBuiltIn (char **line, int numArgs);
 void sstat (char **line, int numArgs);
 int DisplayToConsole(char *filename);
+void readName(char **line, int numArgs);
 
 
 // This compares the string at line[0] to the built in function program name in my builtIns array
@@ -36,7 +37,7 @@ bool builtInFunc (char **line, int args, int * fd)
 {
     fdInUse = fd[1];
     //After changing the 
-    int n = 8;
+    int n = 9;
     char *builtIns[n];
     builtIns[0] = "exit";
     builtIns[1] = "aecho";
@@ -46,6 +47,7 @@ bool builtInFunc (char **line, int args, int * fd)
     builtIns[5] = "shift";
     builtIns[6] = "unshift";
     builtIns[7] = "sstat";
+    builtIns[8] = "read";
     typedef void (*funcBuiltIn)(char **line, int args);
     funcBuiltIn funcBuiltInArr[n];
     funcBuiltInArr[0] = exitBuiltIn;
@@ -56,6 +58,7 @@ bool builtInFunc (char **line, int args, int * fd)
     funcBuiltInArr[5] = shiftBuiltIn;
     funcBuiltInArr[6] = unShiftBuiltIn;
     funcBuiltInArr[7] = sstat;
+    funcBuiltInArr[8] = readName;
 
     normalExit = true;
     int c;
@@ -369,4 +372,28 @@ void sstat (char **line, int numArgs)
     }
     return;
 }
+
+
+void readName (char **line, int numArgs)
+{
+    if (numArgs != 1)
+    {
+        printf("Invalid number of arguments\n");
+        return;
+    }
+    
+    char envStr[1024];
+    fgets (envStr, 1024, stdin);
+    int removeNewL;
+    while (envStr[removeNewL] != '\0')
+    {
+        if (envStr[removeNewL] == '\n')
+        {
+            envStr[removeNewL] = '\0';
+        }
+        removeNewL++;
+    }
+    setenv(line[0], envStr, 1);
+}
+
 
