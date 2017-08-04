@@ -21,6 +21,14 @@ int killChild = -1;
 void forkProcess (char **line, int fd[], int doWait);
 int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);
 
+int redirection (char *expandBuffer, int doWait)
+int 2greaterThanTwice (char *bufferRedirect)
+int 2greaterThan (char *bufferRedirect)
+int greaterThanTwice (char *bufferRedirect)
+int greaterThan (char *bufferRedirect)
+int lessThan (char *bufferRedirect)
+int locateRedirect (char *expandBuffer, char *redirect);
+
 void sigIntHandler (int signum)
 {
     //sleep(1);
@@ -274,5 +282,66 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     
     // Frees up the malloc'ed location by arg_parse
     free(location);
+    return 0;
+}
+
+int redirection (char *expandBuffer, int doWait)
+{
+    int redirection = 5;
+    char *redirect[redirection];
+    redirect[0] = "2>>";
+    redirect[1] = "2>";
+    redirect[2] = ">>";
+    redirect[3] = ">";
+    redirect[4] = "<";
+    typedef int (*redirectFunc)
+    redirectFunc redrectFuncArr[redirection];
+    redrectFuncArr[0] = 2greaterThanTwice;
+    redrectFuncArr[1] = 2greaterThan;
+    redrectFuncArr[2] = greaterThanTwice;
+    redrectFuncArr[3] = greaterThan;
+    redrectFuncArr[4] = lessThan;
+
+    int cycleRedirect;
+    int returnForRedirect = 0;
+    whereIsRedirectMain = 0;
+    char* bufferRedirect = (char *) malloc (sizeof(char) * LINELEN);
+    for (cycleRedirect = 0; cycleRedirect < redirection; cycleRedirect++)
+    {
+        whereIsRedirectSub = 0;
+        whereIsRedirectSub = locateRedirect(expandBuffer, Inz[cycleRedirect]);
+        if (whereIsRedirectSub != 0)
+        {
+            int ToRedirect = 0;
+            for (ToRedirect; ToRedirect < whereIsRedirectSub; ToRedirect++)
+            {
+                bufferRedirect[ToRedirect] = expandBuffer[whereIsRedirectMain];
+                whereIsRedirectMain++;
+            }
+            returnForRedirect = (*redrectFuncArr[cycleRedirect])(bufferRedirect); 
+        }
+       
+        if ()
+    }
+}
+
+int locateRedirect (char *expandBuffer, char *redirect)
+{
+    int location = 0;
+    int counterForEB = 0;
+    while(*redirect != '\0')
+    {
+        if (expandBuffer[counterForEB] != *redirect)
+        {
+            break;
+        }
+        counterForEB++;
+        redirect++;
+        location++;
+    }
+    if (*redirect == '\0')
+    {
+        return location;
+    }
     return 0;
 }
