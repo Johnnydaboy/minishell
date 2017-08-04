@@ -27,7 +27,9 @@ int 2greaterThan (char *bufferRedirect)
 int greaterThanTwice (char *bufferRedirect)
 int greaterThan (char *bufferRedirect)
 int lessThan (char *bufferRedirect)
-int locateRedirect (char *expandBuffer, char *redirect);
+int locateRedirect (char *expandBuffer, char *redirect, int whereIsRedirectMain);
+
+int argCmdParse ();
 
 void sigIntHandler (int signum)
 {
@@ -304,44 +306,45 @@ int redirection (char *expandBuffer, int doWait)
 
     int cycleRedirect;
     int returnForRedirect = 0;
-    whereIsRedirectMain = 0;
+    int whereIsRedirectMain = 0;
+    int whereIsRedirectSub;
     char* bufferRedirect = (char *) malloc (sizeof(char) * LINELEN);
     for (cycleRedirect = 0; cycleRedirect < redirection; cycleRedirect++)
     {
         whereIsRedirectSub = 0;
-        whereIsRedirectSub = locateRedirect(expandBuffer, Inz[cycleRedirect]);
+        whereIsRedirectSub = locateRedirect(expandBuffer, Inz[cycleRedirect], whereIsRedirectMain);
         if (whereIsRedirectSub != 0)
         {
             int ToRedirect = 0;
-            for (ToRedirect; ToRedirect < whereIsRedirectSub; ToRedirect++)
+            for (whereIsRedirectSub; whereIsRedirectSub < whereIsRedirectMain; whereIsRedirectSub++)
             {
-                bufferRedirect[ToRedirect] = expandBuffer[whereIsRedirectMain];
-                whereIsRedirectMain++;
+                bufferRedirect[ToRedirect] = expandBuffer[whereIsRedirectSub];
+                ToRedirect++;
             }
             returnForRedirect = (*redrectFuncArr[cycleRedirect])(bufferRedirect); 
         }
-       
-        if ()
+    }
+    if (whereIsRedirectSub == 0)
+    {
+        whereIsRedirectMain++;
     }
 }
 
-int locateRedirect (char *expandBuffer, char *redirect)
+int locateRedirect (char *expandBuffer, char *redirect, int whereIsRedirectMain)
 {
-    int location = 0;
-    int counterForEB = 0;
+    int counterForEB = whereIsRedirectMain;
     while(*redirect != '\0')
     {
-        if (expandBuffer[counterForEB] != *redirect)
+        if (expandBuffer[whereIsRedirectMain] != *redirect)
         {
             break;
         }
-        counterForEB++;
+        whereIsRedirectMain++;
         redirect++;
-        location++;
     }
     if (*redirect == '\0')
     {
-        return location;
+        return counterForEB;
     }
     return 0;
 }
