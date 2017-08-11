@@ -20,12 +20,12 @@ int globalIntSigInt;
 int killChild = -1;
 
 /* Prototypes */
-void forkProcess (char **line, int fd[], int doWait);
+void forkProcess (char **line, int fdInput, int fdOutPut, int doWait);
 int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);
 //int findChar (char * line, char * keyComparison);
 int locateRedirect (char *expandBuffer, char * comparison, int *whereIsRedirectMain);
 
-int redirection (char *expandBuffer, int doWait);
+int redirection (char *expandBuffer);
 
 //int redirection (char *expandBuffer);
 int twoGreaterThanTwice (char *bufferRedirect);
@@ -157,7 +157,6 @@ int main(int mainargc, char **mainargv)
             }
         }
     }
-
     return 0; /* Also known as exit (0); */
 }
 //echo $(./gen 65537)
@@ -165,7 +164,7 @@ int main(int mainargc, char **mainargv)
 // Runs a library program if a built in command wasn't called
 
 //break it up into int fd[0] and fd[1] and send it through
-void forkProcess (char **line, int fd[], int doWait)
+void forkProcess (char **line, int fdInput, int fdOutPut, int doWait)
 {
     pid_t  cpid;
     int status;
@@ -181,11 +180,18 @@ void forkProcess (char **line, int fd[], int doWait)
     if (cpid == 0) {
       /* We are the child! */
       //If this is the main process then this won't run 
+      if (fdInput != 1)
+      {
+          dup2(fdOutPut, 1);
+          close(fdInput);
+      }
+        /*
       if (fd[1] != 1)
       {
         dup2(fd[1], 1);
         close(fd[0]);
       }
+        */
       execvp (line[0], line);
       perror ("exec");
       exit (127);
@@ -240,17 +246,18 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
         return 1;
     }
     // Running arg_parse in order to return the arguments in a seperated string array format
-
-
-    /*
+    //int fileDes[2];
     int backRedirect = redirection(expandBuffer);
     if (backRedirect == -1)
     {
         printf("Error: Processline\n");
         return -1;
     }
-    */
-
+    else if (backRedirect != 0)
+    {
+        fd[0] = backRedirect;
+    }
+    
     if (successfulExpand != 0)
     {
         location = arg_parse(expandBuffer, &numOfArg);
@@ -263,36 +270,6 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     {
         return 1;
     }
-
-    
-    /*
-    while (expandBuffer[loop] != '\0')
-    {
-        int whereChar = findChar(expandBuffer, "<>");
-        int whichRedirect;
-        if (expandBuffer[whereChar] == '>' && expandBuffer[whereChar - 1] == '2' && expandBuffer[whereChar + 1] == '>' )
-        {
-            whichRedirect = 5;
-        }
-        else if (expandBuffer[whereChar] == '>' && expandBuffer[whereChar - 1] == '2')
-        {
-            whichRedirect = 4;
-        }
-        else if (expandBuffer[whereChar] == '>' && expandBuffer[whereChar + 1] == '>')
-        {
-            whichRedirect = 3;
-        }
-        else if (expandBuffer[whereChar] == '>')
-        {
-            whichRedirect = 2;
-            
-        }
-        else if (expandBuffer[whereChar] == '<')
-        {
-            whichRedirect = 1;
-        }
-    }
-    */
     bool runforkPro;
     
     /* Run it ... */
@@ -327,7 +304,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
         // This makes sure that processline doesn't run if a built in function was called
         if (runforkPro == false)
         {
-            forkProcess (location, fd, doWait);
+            forkProcess (location, fd[1], fd[0], doWait);
         }
     }
     
@@ -336,152 +313,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     return 0;
 }
 
-
-/*
 int redirection (char *expandBuffer)
-{
-    int loop = 0;
-    bool inQuote = false;
-    int whichRedirect = 0;
-    int countForWhich = 0;
-    while (expandBuffer[loop] != '\0')
-    {
-
-        if (expandBuffer[loop] == '"')
-        {
-            if (inQuote == false)
-            {
-                inQuote = true;
-            }
-            else if (inQuote == true)
-            {
-                inQuote = false;
-            }
-            loop++;
-        }
-        else if (inQuote == true)
-        {
-            loop++;
-        }
-        if (inQuote == false)
-        {
-            if (whichRedirect == 0)
-            {
-                countForWhich = locateWR (expandBuffer, &whichRedirect);
-            }
-            expandBuffer = expandBuffer + countForWhich;
-            if (whichRedirect == 5)
-            {
-
-            }
-            else if (whichRedirect == 4)
-            {
-
-            }
-            else if (whichRedirect == 3)
-            {
-                
-            }
-            else if (whichRedirect == 2)
-            {
-                countForWhich = greaterThan(expandBuffer, &countForWhich, &whichRedirect);
-                if (countForWhich == 0)
-                {
-                    //found nothing to follow up
-                    return 0;
-                }
-            }
-            else if (whichRedirect == 1)
-            {
-                
-            }
-        }
-    }
-    return 0;
-}
-
-int findChar (char * line, char * keyComparison)
-{
-    int cycleRedirect = 0;
-    while (line[cycleRedirect] != '\0')
-    {
-        int cycleKey;
-        for(cycleKey = 0; cycleKey < strlen(keyComparison); cycleKey++)
-        {
-            if (line[cycleRedirect] == keyComparison[cycleKey])
-            {
-                return cycleRedirect;
-            }
-        }
-        cycleRedirect++;
-    }
-    return 0;
-}
-
-int locateWhichRedirect (char *expandBuffer, int *check)
-{
-    int whereChar = findChar(expandBuffer, "<>");
-            
-    if (expandBuffer[whereChar] == '>' && expandBuffer[whereChar - 1] == '2' && expandBuffer[whereChar + 1] == '>')
-    {
-        *check = 5;
-        expandBuffer[whereChar] = ' ';
-        expandBuffer[whereChar - 1] = ' ';
-        expandBuffer[whereChar + 1] = ' ';
-        whereChar = whereChar + 2;
-    }
-    else if (expandBuffer[whereChar] == '>' && expandBuffer[whereChar - 1] == '2')
-    {
-        *check = 4;
-        expandBuffer[whereChar] = ' ';
-        expandBuffer[whereChar - 1] = ' ';
-        whereChar = whereChar + 1;
-    }
-    else if (expandBuffer[whereChar] == '>' && expandBuffer[whereChar + 1] == '>')
-    {
-        *check = 3;
-        expandBuffer[whereChar] = ' ';
-        expandBuffer[whereChar + 1] = ' ';
-        whereChar = whereChar + 2;
-    }
-    else if (expandBuffer[whereChar] == '>')
-    {
-        *check = 2;
-        expandBuffer[whereChar] = ' ';
-        whereChar++;
-        //int failure = greaterThan (expandBuffer, &loop);
-    }
-    else if (expandBuffer[whereChar] == '<')
-    {
-        *check = 1;
-        expandBuffer[whereChar] = ' ';
-        whereChar++;
-    }
-    return whereChar;
-}
-
-int greaterThan (char *bufferRedirect, int *location, int *whichRedirect)
-{
-    int loopLoc = *location;
-    //int whereNextRedirect = findChar(bufferRedirect, "<>");
-    int whereNextRedirect = locateWR(bufferRedirect, whichRedirect);
-    char outputTo[1024];
-    while(loopLoc != whereNextRedirect)
-    {
-        outputTo[loopLoc] = bufferRedirect[loopLoc];
-        loopLoc++;
-    }
-    int fdOutput = open(outputTo, O_CREAT | O_WRONLY | O_TRUNC);
-    if (fdOutput == -1)
-    {
-        printf("Error: greaterThan in opening file\n");
-        return -1;
-    }
-    return whereNextRedirect;
-}
-*/
-
-int redirection (char *expandBuffer, int doWait)
 {
     int redirection = 5;
     char *redirect[redirection];
@@ -497,7 +329,6 @@ int redirection (char *expandBuffer, int doWait)
     redrectFuncArr[2] = greaterThanTwice;
     redrectFuncArr[3] = greaterThan;
     redrectFuncArr[4] = lessThan;
-
     int cycleRedirect;
     int returnForRedirect = 0;
     int whereIsRedirectMain = 0;
@@ -563,7 +394,7 @@ int redirection (char *expandBuffer, int doWait)
                 {
                     expandBuffer[whereIsRedirectMain] = ' ';
                     whereIsRedirectMain++;
-                } 
+                }
                 cycleRedirect = 0;
             }
             /*
@@ -578,6 +409,7 @@ int redirection (char *expandBuffer, int doWait)
             whereIsRedirectMain++;
         }
     }
+    return returnForRedirect;
 }
 
 int locateRedirect (char *expandBuffer, char * comparison, int *whereIsRedirectMain)
@@ -599,25 +431,50 @@ int locateRedirect (char *expandBuffer, char * comparison, int *whereIsRedirectM
     }
     return 0;
 }
-/*
-int locateRedirect (char *expandBuffer, char *redirect, int *whereIsRedirectMain)
+
+int twoGreaterThanTwice (char *bufferRedirect)
 {
-    int counterForEB = *whereIsRedirectMain;
-    int cpyOfWhereIsRedirectMain = *whereIsRedirectMain;
-    while(*redirect != '\0')
+    int openFDOutput = open(bufferRedirect, O_APPEND | O_WRONLY | O_CREAT);
+    if (openFDOutput == -1)
     {
-        if (expandBuffer[cpyOfWhereIsRedirectMain] != *redirect)
-        {
-            break;
-        }
-        cpyOfWhereIsRedirectMain++;
-        redirect++;
+        printf("Error: twoGreaterThanTwice: cannot create file\n");
     }
-    if (*redirect == '\0')
-    {
-        //*whereIsRedirectMain = cpyOfWhereIsRedirectMain;
-        return counterForEB;
-    }
-    return 0;
+    return openFDOutput;
 }
-*/
+int twoGreaterThan (char *bufferRedirect)
+{
+    int openFDOutput = open(bufferRedirect, O_CREAT | O_WRONLY | O_TRUNC);
+    if (openFDOutput == -1)
+    {
+        printf("Error: TwoGreaterThan: cannot create file\n");
+    }
+    return openFDOutput;
+}
+int greaterThanTwice (char *bufferRedirect)
+{
+    int openFDOutput = open(bufferRedirect, O_APPEND | O_WRONLY | O_CREAT);
+    if (openFDOutput == -1)
+    {
+        printf("Error: greaterThanTwice: cannot create file\n");
+    }
+    return openFDOutput;
+}
+int greaterThan (char *bufferRedirect)
+{
+    int openFDOutput = open(bufferRedirect, O_CREAT | O_WRONLY | O_TRUNC);
+    if (openFDOutput == -1)
+    {
+        printf("Error: greaterThan: cannot create file\n");
+    }
+    return openFDOutput;
+}
+int lessThan (char *bufferRedirect)
+{
+    int openFDInput = open(bufferRedirect, O_RDONLY);
+    if (openFDInput == -1)
+    {
+        printf("Error: lessThan: Cannot open file\n");
+        return -1;
+    }
+    return openFDInput;
+}
