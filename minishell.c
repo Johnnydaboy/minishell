@@ -22,16 +22,18 @@ int killChild = -1;
 /* Prototypes */
 void forkProcess (char **line, int fd[], int doWait);
 int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);
-int findChar (char * line, char * keyComparison);
+//int findChar (char * line, char * keyComparison);
+int locateRedirect (char *expandBuffer, char * comparison, int *whereIsRedirectMain);
 
-int redirection (char *expandBuffer);
-int twoGreaterThanTwice (char *bufferRedirect, int *location, int *whichRedirect);
-int twoGreaterThan (char *bufferRedirect, int *location, int *whichRedirect);
-int greaterThanTwice (char *bufferRedirect, int *location, int *whichRedirect);
-int greaterThan (char *bufferRedirect, int *location, int *whichRedirect);
-int lessThan (char *bufferRedirect, int *location, int *whichRedirect);
-int locateWR (char *expandBuffer, int *check);
-//int locateRedirect (char *expandBuffer, char *redirect, int whereIsRedirectMain);
+int redirection (char *expandBuffer, int doWait);
+
+//int redirection (char *expandBuffer);
+int twoGreaterThanTwice (char *bufferRedirect);
+int twoGreaterThan (char *bufferRedirect);
+int greaterThanTwice (char *bufferRedirect);
+int greaterThan (char *bufferRedirect);
+int lessThan (char *bufferRedirect);
+//int locateWR (char *expandBuffer, int *check);
 
 //int argCmdParse ();
 
@@ -238,12 +240,16 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
         return 1;
     }
     // Running arg_parse in order to return the arguments in a seperated string array format
+
+
+    /*
     int backRedirect = redirection(expandBuffer);
     if (backRedirect == -1)
     {
         printf("Error: Processline\n");
         return -1;
     }
+    */
 
     if (successfulExpand != 0)
     {
@@ -330,24 +336,8 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     return 0;
 }
 
-int findChar (char * line, char * keyComparison)
-{
-    int cycleRedirect = 0;
-    while (line[cycleRedirect] != '\0')
-    {
-        int cycleKey;
-        for(cycleKey = 0; cycleKey < strlen(keyComparison); cycleKey++)
-        {
-            if (line[cycleRedirect] == keyComparison[cycleKey])
-            {
-                return cycleRedirect;
-            }
-        }
-        cycleRedirect++;
-    }
-    return 0;
-}
 
+/*
 int redirection (char *expandBuffer)
 {
     int loop = 0;
@@ -410,7 +400,25 @@ int redirection (char *expandBuffer)
     return 0;
 }
 
-int locateWR (char *expandBuffer, int *check)
+int findChar (char * line, char * keyComparison)
+{
+    int cycleRedirect = 0;
+    while (line[cycleRedirect] != '\0')
+    {
+        int cycleKey;
+        for(cycleKey = 0; cycleKey < strlen(keyComparison); cycleKey++)
+        {
+            if (line[cycleRedirect] == keyComparison[cycleKey])
+            {
+                return cycleRedirect;
+            }
+        }
+        cycleRedirect++;
+    }
+    return 0;
+}
+
+int locateWhichRedirect (char *expandBuffer, int *check)
 {
     int whereChar = findChar(expandBuffer, "<>");
             
@@ -471,27 +479,8 @@ int greaterThan (char *bufferRedirect, int *location, int *whichRedirect)
     }
     return whereNextRedirect;
 }
+*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
 int redirection (char *expandBuffer, int doWait)
 {
     int redirection = 5;
@@ -501,10 +490,10 @@ int redirection (char *expandBuffer, int doWait)
     redirect[2] = ">>";
     redirect[3] = ">";
     redirect[4] = "<";
-    typedef int (*redirectFunc)
+    typedef int(*redirectFunc)(char *ptrToFileName);
     redirectFunc redrectFuncArr[redirection];
-    redrectFuncArr[0] = 2greaterThanTwice;
-    redrectFuncArr[1] = 2greaterThan;
+    redrectFuncArr[0] = twoGreaterThanTwice;
+    redrectFuncArr[1] = twoGreaterThan;
     redrectFuncArr[2] = greaterThanTwice;
     redrectFuncArr[3] = greaterThan;
     redrectFuncArr[4] = lessThan;
@@ -513,43 +502,120 @@ int redirection (char *expandBuffer, int doWait)
     int returnForRedirect = 0;
     int whereIsRedirectMain = 0;
     int whereIsRedirectSub;
-    int whereIsCommand = 0;
-    char* bufferRedirect = (char *) malloc (sizeof(char) * LINELEN);
-    for (cycleRedirect = 0; cycleRedirect < redirection; cycleRedirect++)
+    //int whereIsCommand = 0;
+    //char* bufferRedirect = (char *) malloc (sizeof(char) * LINELEN);
+    while (expandBuffer[whereIsRedirectMain] != '\0')
     {
-        whereIsRedirectSub = 0;
-        whereIsRedirectSub = locateRedirect(expandBuffer, Inz[cycleRedirect], whereIsRedirectMain);
-        if (whereIsRedirectSub != 0)
+        for (cycleRedirect = 0; cycleRedirect < redirection; cycleRedirect++)
         {
-            int ToRedirect = 0;
-            for (whereIsRedirectSub; whereIsRedirectSub < whereIsRedirectMain; whereIsRedirectSub++)
+            whereIsRedirectSub = 0;
+            whereIsRedirectSub = locateRedirect(expandBuffer, redirect[cycleRedirect], &whereIsRedirectMain);
+            if (whereIsRedirectSub != 0)
             {
-                bufferRedirect[ToRedirect] = expandBuffer[whereIsRedirectSub];
-                ToRedirect++;
+
+                //int ToRedirect = 0;
+                bool inRedirect = true;
+                char * ptrToFileName = expandBuffer + whereIsRedirectSub;
+                char replacementChar;
+                while (inRedirect == true)
+                {
+                    if (expandBuffer[whereIsRedirectSub] == '2' && expandBuffer[whereIsRedirectSub + 1] == '>' && expandBuffer[whereIsRedirectSub + 2] == '>')
+                    {
+                        //inRedirect = false;
+                        break;
+                    }
+                    else if (expandBuffer[whereIsRedirectSub] == '2' && expandBuffer[whereIsRedirectSub + 1] == '>')
+                    {
+                        //inRedirect = false;
+                        break;
+                    }
+                    else if (expandBuffer[whereIsRedirectSub] == '>' && expandBuffer[whereIsRedirectSub + 1] == '>')
+                    {
+                        //inRedirect = false;
+                        break;
+                    }
+                    else if (expandBuffer[whereIsRedirectSub] == '>')
+                    {
+                        //inRedirect = false;
+                        break;
+                    }
+                    else if (expandBuffer[whereIsRedirectSub] == '<')
+                    {
+                        //inRedirect = false;
+                        break;
+                    }
+                    /*
+                    for (whereIsRedirectSub; whereIsRedirectSub < whereIsRedirectMain; whereIsRedirectSub++)
+                    {
+                        bufferRedirect[ToRedirect] = expandBuffer[whereIsRedirectSub];
+                        ToRedirect++;
+                    }
+                    */
+                    //bufferRedirect[ToRedirect] = expandBuffer[whereIsRedirectSub];
+                    //ToRedirect++;
+                    whereIsRedirectSub++;
+                }
+                replacementChar = expandBuffer[whereIsRedirectSub];
+                expandBuffer[whereIsRedirectSub] = '\0';
+                returnForRedirect = (*redrectFuncArr[cycleRedirect])(ptrToFileName);
+                expandBuffer[whereIsRedirectSub] = replacementChar;
+                while (whereIsRedirectSub != whereIsRedirectMain)
+                {
+                    expandBuffer[whereIsRedirectMain] = ' ';
+                    whereIsRedirectMain++;
+                } 
+                cycleRedirect = 0;
             }
-            returnForRedirect = (*redrectFuncArr[cycleRedirect])(bufferRedirect); 
+            /*
+            else if (whereIsRedirectSub == 0)
+            {
+                printf("Error: redirection\n");
+            }
+            */
         }
-    }
-    if (whereIsRedirectSub == 0)
-    {
-        whereIsRedirectMain++;
+        if (whereIsRedirectSub == 0)
+        {
+            whereIsRedirectMain++;
+        }
     }
 }
 
-int locateRedirect (char *expandBuffer, char *redirect, int whereIsRedirectMain)
+int locateRedirect (char *expandBuffer, char * comparison, int *whereIsRedirectMain)
 {
-    int counterForEB = whereIsRedirectMain;
-    while(*redirect != '\0')
+    int counter = *whereIsRedirectMain;
+    while (expandBuffer[counter] != '\0')
     {
-        if (expandBuffer[whereIsRedirectMain] != *redirect)
+        if (expandBuffer[counter] != *comparison)
         {
             break;
         }
-        whereIsRedirectMain++;
+        counter++;
+        comparison++;
+        //counter++;
+    }
+    if (*comparison == '\0')
+    {
+        return counter;
+    }
+    return 0;
+}
+/*
+int locateRedirect (char *expandBuffer, char *redirect, int *whereIsRedirectMain)
+{
+    int counterForEB = *whereIsRedirectMain;
+    int cpyOfWhereIsRedirectMain = *whereIsRedirectMain;
+    while(*redirect != '\0')
+    {
+        if (expandBuffer[cpyOfWhereIsRedirectMain] != *redirect)
+        {
+            break;
+        }
+        cpyOfWhereIsRedirectMain++;
         redirect++;
     }
     if (*redirect == '\0')
     {
+        //*whereIsRedirectMain = cpyOfWhereIsRedirectMain;
         return counterForEB;
     }
     return 0;
