@@ -24,7 +24,7 @@ typedef int(*redirectFunc)(char *ptrToFileName);
 /* Prototypes */
 void forkProcess (char **line, int origFd[], int newFd[], int doWait);
 int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);
-int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd);
+void redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd);
 int locateRedirect (char *expandBuffer, int startPos, int *whereIsRedirectMain, int *whereIsRedirectSub);
 int normalizeFilenameForRedirect (char *buffer);
 int findRedirectFilenameEnd (char *expandedBuffer, int startPos);
@@ -125,7 +125,7 @@ int main(int mainargc, char **mainargv)
         {
             if (countercc == LINELEN - 1)
             {
-                perror("buffer overflow");
+                dprintf(2, "buffer overflow");
                 exit(127);
             }        
             else if (*buffptr1 == '\n')
@@ -135,7 +135,7 @@ int main(int mainargc, char **mainargv)
                 *buffptr1 = '\n';
                 if (functional == 1)
                 {
-                    perror("Error");
+                    dprintf(2, "Error: proLine");
                 }
                 countercc = 0;
                 buffptr1 = buffer;
@@ -149,7 +149,7 @@ int main(int mainargc, char **mainargv)
             functional = processLine(buffer, expandBuffer, origFdArr, doWait);
             if (functional == 1)
             {
-                perror("Error");
+                dprintf(2, "Error: proLine");
             }
         }
     }
@@ -183,7 +183,8 @@ void forkProcess (char **line, int origFd[], int newFd[], int doWait)
     
     /*We are the child! */
     // If this is the main process then this won't run 
-    if (cpid == 0) {
+    if (cpid == 0) 
+    {
 
         if (dup2(newFd[0], 0) == -1)
         {
@@ -262,12 +263,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     redirectedFds[0] = origFds[0]; 
     redirectedFds[1] = origFds[1];
     redirectedFds[2] = origFds[2];  
-    int backRedirect = redirection(expandBuffer, &redirectedFds[0], &redirectedFds[1], &redirectedFds[2]);
-    if (backRedirect == -1)
-    {
-        perror("Error: Processline");
-        return -1;
-    }
+    redirection(expandBuffer, &redirectedFds[0], &redirectedFds[1], &redirectedFds[2]);
     
     if (successfulExpand != 0)
     {
@@ -314,9 +310,8 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     return 0;
 }
 
-int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
+void redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
 {
-    int returnForRedirect = 0; // fd to return
     int whereIsRedirectMain = 0; // first character of redirection symbol
     int whereIsRedirectSub; // last character of redirection symbol
     int whatOperation;
@@ -351,7 +346,6 @@ int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
         setAllCharsInRange (expandedBuffer, whereIsRedirectMain, endOfFilenamePos, ' ');
         expandedBuffer[endOfFilenamePos] = tempChar;
     }
-    return returnForRedirect;
 }
 
 void setAllCharsInRange (char *expandedBuffer, int start, int end, char c)

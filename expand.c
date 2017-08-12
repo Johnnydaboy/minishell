@@ -86,7 +86,7 @@ int expand (char *orig, char *new, int newsize)
                 // If it fail and no } is found it will print an error statement
                 if (inputNew == -1)
                 {
-                    perror("${: No matching }");
+                    dprintf(2, "${: No matching }");
                     return 0;
                 }
                 else if (inputC == -1)
@@ -98,7 +98,7 @@ int expand (char *orig, char *new, int newsize)
                 whereIsNew = whereIsNew + inputNew;
                 if (whereIsNew > newsize)
                 {
-                    perror("Expand too big");
+                    dprintf(2, "Expand too big");
                     return 0; 
                 }
                 else
@@ -256,7 +256,7 @@ int expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * cou
     int tempArg = 0;
     if (*origBuffLoc == '\0' || *origBuffLoc == ' ' )
     {
-        perror("error here");
+        dprintf(2, "error here");
         return -1;
     }
     //This algorithm converts strings into ints using the ASCII table (look at reference from char and their decimal 
@@ -355,7 +355,7 @@ int expandLocOfArg (char * origBuffLoc, char * newBuff, int * counter, int * cou
     }
     else
     {
-        perror("Error: Something has occured");
+        dprintf(2,"Error: Something has occured");
         return -1;
     }
     return *counterNew;
@@ -399,8 +399,8 @@ int wildCardExpand (char * origBuffLoc, char * newBuff, int * counter, int * cou
         }
         else if (printDir == 3)
         {
-            perror("Error: / detected");
-            break;
+            dprintf(2, "Error: / detected");
+            //break;
             return -1;
         }
     }
@@ -683,13 +683,13 @@ int commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * c
             origBuffLoc[findbrace] = '\0';
             if (pipe(fileDescriptors) == -1)
             {
-                perror("Error");
+                perror("Error: pipe");
             }
             int doWait = 1;
             int functional = processLine(origBuffLoc, ecmdExpandBuf, fileDescriptors, doWait);
             if (functional == 1)
             {
-                perror("Error");
+                dprintf(2, "Error: proLine");
                 return -1;
             }
             close(fileDescriptors[1]);
@@ -726,7 +726,7 @@ int commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * c
     }
     if (matchingBrace > 0)
     {
-        perror("Matching parentheses not found");
+        dprintf(2,"Matching parentheses not found");
         return -1;
     }
     int removeNewLine = 0;
@@ -745,7 +745,7 @@ int commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * c
         }
         if (removeNewLine >= LINELEN)
         {
-            perror("Too many characters");
+            dprintf(2,"Too many characters");
             return -1;
         }
         removeNewLine++;

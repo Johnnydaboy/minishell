@@ -74,7 +74,7 @@ char ** arg_parse (char *line, int *argcp)
     // If you have an odd number of quotes it won't malloc the needed amount of memory
     else
     {
-        perror("You can't have an odd number of quotes");
+        dprintf(2, "You can't have an odd number of quotes");
         return NULL;
     }        
     counter = counter + 1;
