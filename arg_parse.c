@@ -81,13 +81,13 @@ char ** arg_parse (char *line, int *argcp)
     *argcp = counter;
     
     // This mallocs the correct number of memory based on the number of arguments you have
+
     char ** ptrToStrArr = (char** ) malloc(sizeof (char*) * counter);
     inArg = false;
     inQuote = false;
     int ptrToStrArrCounter = 0;
     char * ptr1 = line;
     char * ptr2 = line;
-    
     /* This seeks out the beginning of each argument and sets the array for each beginning argument,
     it then proceeds to seperate each argument so that each argument won't interefer with each other
     and this finally gives you seperated arguments */
@@ -130,4 +130,3 @@ char ** arg_parse (char *line, int *argcp)
     ptrToStrArr[ptrToStrArrCounter] = '\0';
     return ptrToStrArr;
 }
-

@@ -17,6 +17,8 @@
 #include "proto.h"
 #include "globals.h"
 
+typedef int(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+
 bool normalExit = true;
 int whatInz;
 int whatDollar;
@@ -49,7 +51,7 @@ int expand (char *orig, char *new, int newsize)
     Inz[8] = "~";
     int whereIsInz = 0;
     int whereIsNew = 0;
-    typedef int(*funcInz)(char * origBuffLoc, char * newBuff, int * counter, int * counterNew);
+
     funcInz funcInzArr[lenOfFuncArr];
     funcInzArr[0] = expandEnvVar;
     funcInzArr[1] = expandPid;
