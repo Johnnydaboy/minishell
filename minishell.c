@@ -116,7 +116,7 @@ int main(int mainargc, char **mainargv)
         fileopener = fopen(mainargv[1],"r");
         if (fileopener == NULL)
         {
-            printf("Error in opening file\n");
+            perror("Error in opening file");
             exit(127);
         }
         
@@ -125,7 +125,7 @@ int main(int mainargc, char **mainargv)
         {
             if (countercc == LINELEN - 1)
             {
-                printf("buffer overflow\n");
+                perror("buffer overflow");
                 exit(127);
             }        
             else if (*buffptr1 == '\n')
@@ -135,7 +135,7 @@ int main(int mainargc, char **mainargv)
                 *buffptr1 = '\n';
                 if (functional == 1)
                 {
-                    printf("Error \n");
+                    perror("Error");
                 }
                 countercc = 0;
                 buffptr1 = buffer;
@@ -149,7 +149,7 @@ int main(int mainargc, char **mainargv)
             functional = processLine(buffer, expandBuffer, origFdArr, doWait);
             if (functional == 1)
             {
-                printf("Error \n");
+                perror("Error");
             }
         }
     }
@@ -187,15 +187,15 @@ void forkProcess (char **line, int origFd[], int newFd[], int doWait)
 
         if (dup2(newFd[0], 0) == -1)
         {
-            printf("Error dup2 on fdInput\n");
+            perror("Error dup2 on fdInput");
         }
         if (dup2(newFd[1], 1) == -1)
         {
-            printf("Error dup2 on fdOutput\n");
+            perror("Error dup2 on fdOutput");
         }
         if (dup2(newFd[2], 2) == -1)
         {
-            printf("Error dup2 on fdError\n");
+            perror("Error dup2 on fdError");
         } 
 
         execvp (line[0], line);
@@ -265,7 +265,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     int backRedirect = redirection(expandBuffer, &redirectedFds[0], &redirectedFds[1], &redirectedFds[2]);
     if (backRedirect == -1)
     {
-        printf("Error: Processline\n");
+        perror("Error: Processline");
         return -1;
     }
     
@@ -376,8 +376,22 @@ void setAllCharsInRange (char *expandedBuffer, int start, int end, char c)
 int locateRedirect (char *expandedBuffer, int startPos, int *whereIsRedirectMain, int *whereIsRedirectSub)
 {
     int counter = startPos;
+    bool enterQuote = false;
     while (expandedBuffer[counter] != '\0')
     {
+        if (expandedBuffer[counter] == '"')
+        {
+            enterQuote = true;
+            counter++;
+            while (enterQuote == true)
+            {
+                if (expandedBuffer[counter] == '"')
+                {
+                    enterQuote = !enterQuote;
+                }
+                counter++;
+            }
+        }
         // case 2 "<"
         if (expandedBuffer[counter] == '<')
         {
@@ -455,7 +469,7 @@ int findRedirectFilenameEnd (char *expandedBuffer, int startPos)
 
 int openFile (char *filename, int FLAGS)
 {
-    int openFd = open(filename, FLAGS, S_IRUSR | S_IWUSR | S_IRGRP | S_IRGRP);
+    int openFd = open(filename, FLAGS, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if(openFd == -1)
     {
         perror("open");

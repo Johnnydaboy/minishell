@@ -86,7 +86,7 @@ void exitBuiltIn (char **line, int numArgs)
     else if (numArgs > 1)
     {
         normalExit = false;
-        printf("You have too many arguments\n");
+        perror("You have too many arguments");
     }
     else
     {
@@ -195,7 +195,7 @@ void envunsetBuiltIn (char **line, int numArgs)
     if (numArgs != 1)
     {
         normalExit = false;
-        printf("Error: Invalid number of arguments for envunset\n");
+        perror("Error: Invalid number of arguments for envunset");
         return;
     }
     
@@ -211,7 +211,7 @@ void chdirBuiltIn (char **line, int numArgs)
         if (homeDir == 0)
         {
             normalExit = false;
-            printf("Nothing in homeDir\n");
+            perror("Nothing in homeDir");
             return;
         }
         chdir(homeDir);
@@ -223,11 +223,11 @@ void chdirBuiltIn (char **line, int numArgs)
         if (isThere == -1)
         {
             normalExit = false;
-            printf("Directory does not exist\n");
+            perror("Directory does not exist");
         }
         return;
     }
-    printf("Error: Invalid number of arguments for cd\n");
+    perror("Error: Invalid number of arguments for cd");
     return;
     chdir(line[0]);
 }
@@ -238,7 +238,7 @@ void shiftBuiltIn (char **line, int numArgs)
     if (margc <= 2)
     {
         normalExit = false;
-        printf("Nothing to shift here\n");
+        perror("Nothing to shift here");
         return;
     }
     if (numArgs == 0)
@@ -250,7 +250,7 @@ void shiftBuiltIn (char **line, int numArgs)
         shiftBy = atoi (line[0]);
         if (shiftBy > ((margc - 2) - counterForShift))
         {
-            printf("Overshifting please change the number to shift\n");
+            perror("Overshifting please change the number to shift");
             normalExit = false;
             return;
         }
@@ -258,7 +258,7 @@ void shiftBuiltIn (char **line, int numArgs)
     }
     else 
     {
-        printf("Error: Invalid number of arguments for shift\n");
+        perror("Error: Invalid number of arguments for shift");
         normalExit = false;
         return;
     }
@@ -277,7 +277,7 @@ void unShiftBuiltIn (char **line, int numArgs)
         if (unshiftby > (counterForShift - 2))
         {
             normalExit = false;
-            printf("Undershifting please change the number to shift\n");
+            perror("Undershifting please change the number to shift");
             return;
         }
         counterForShift = counterForShift - unshiftby;
@@ -285,7 +285,7 @@ void unShiftBuiltIn (char **line, int numArgs)
     else
     { 
         normalExit = false;
-        printf("Error: Invalid number of arguments for unshift\n");
+        perror("Error: Invalid number of arguments for unshift");
         return;
     }     
 }
@@ -366,7 +366,7 @@ void sstat (char **line, int numArgs)
         int successOrFail = DisplayToConsole(line[loopArgs]);
         if (successOrFail == 1)
         {
-            printf ("File or directory does not exist\n");
+            perror ("File or directory does not exist");
         }
         loopArgs++;
     }
@@ -378,7 +378,7 @@ void readName (char **line, int numArgs)
 {
     if (numArgs != 1)
     {
-        printf("Invalid number of arguments\n");
+        perror("Invalid number of arguments");
         return;
     }
     
