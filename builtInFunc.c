@@ -317,10 +317,10 @@ int DisplayToConsole(char *filename)
     
     grp = getgrgid(fileStat.st_gid);
     lenOfStrLen = strlen(grp->gr_name);
-    snprintf(bufferForWrite, lenOfStrLen + 2, "\t%s", grp->gr_name);
-    write(fdInUse, bufferForWrite, lenOfStrLen + 1);
+    snprintf(bufferForWrite, lenOfStrLen + 3, "\t%s\t", grp->gr_name);
+    write(fdInUse, bufferForWrite, lenOfStrLen + 3);
     
-    snprintf(bufferForWrite, 2, (S_ISDIR(fileStat.st_mode)) ? "\td" : "\t-");
+    snprintf(bufferForWrite, 2, (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
     write(fdInUse, bufferForWrite, 1);
     snprintf(bufferForWrite, 2, (fileStat.st_mode & S_IRUSR) ? "r" : "-");
     write(fdInUse, bufferForWrite, 1);

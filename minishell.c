@@ -455,7 +455,7 @@ int findRedirectFilenameEnd (char *expandedBuffer, int startPos)
 
 int openFile (char *filename, int FLAGS)
 {
-    int openFd = open(filename, FLAGS, 644);
+    int openFd = open(filename, FLAGS, S_IRUSR | S_IWUSR | S_IRGRP | S_IRGRP);
     if(openFd == -1)
     {
         perror("open");
