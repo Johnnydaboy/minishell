@@ -29,6 +29,7 @@ int locateRedirect (char *expandBuffer, int startPos, int *whereIsRedirectMain, 
 int normalizeFilenameForRedirect (char *buffer);
 int findRedirectFilenameEnd (char *expandedBuffer, int startPos);
 int openFile (char *filename, int FLAGS);
+bool normalizedString = false;
 
 void setAllCharsInRange (char *expandedBuffer, int start, int end, char c);
 //int argCmdParse ();
@@ -326,7 +327,13 @@ int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
         int endOfFilenamePos = findRedirectFilenameEnd(expandedBuffer, whereIsRedirectSub + 1);
         char tempChar = expandedBuffer[endOfFilenamePos];
         expandedBuffer[endOfFilenamePos] = '\0';
-        normalizeFilenameForRedirect(&expandedBuffer[whereIsRedirectSub + 1]);
+        int endOfFileToSpace = normalizeFilenameForRedirect(&expandedBuffer[whereIsRedirectSub + 1]);
+        if (endOfFileToSpace != 0)
+        {
+            expandedBuffer[endOfFilenamePos] = tempChar;
+            endOfFilenamePos = whereIsRedirectSub + 1 + endOfFileToSpace;
+            tempChar = expandedBuffer[endOfFilenamePos]; 
+        }
 
         if (whatOperation == 1)
         {
@@ -351,7 +358,9 @@ int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
         
         setAllCharsInRange (expandedBuffer, whereIsRedirectMain, endOfFilenamePos, ' ');
         expandedBuffer[endOfFilenamePos] = tempChar;
+        normalizedString = true;
     }
+    normalizedString = false;
     if (*out_fd == -1 || *in_fd == -1 || *err_fd == -1)
     {
         perror("open");
@@ -502,20 +511,25 @@ int normalizeFilenameForRedirect (char *buffer)
     bool inQuote = false;
     char * ptr1 = buffer;
     char * ptr2 = buffer;
+    while (*ptr2 == ' ')
+    {
+        ptr2++;
+        counterForEof++;
+    }
     while (*ptr2 != '\0')
     {
-        if (*ptr2 == '"' || *ptr2 == ' ')
+        if (*ptr2 == '"')
         {
-            if (*ptr2 == '"')
-            {
-                *ptr2 = ' ';
-                inQuote = !inQuote;
-            }
+            *ptr2 = ' ';
+            inQuote = !inQuote;
             ptr2++;
         }
         else if (*ptr2 == ' ' && inQuote == false)
         {
-            //*ptr2 = '\0';
+            //*ptr2 = '\0'
+            //ptr1++;
+            *ptr1 = '\0';
+            return counterForEof;
             break;
         }
         else if (inQuote == false)
@@ -534,6 +548,6 @@ int normalizeFilenameForRedirect (char *buffer)
         }
     }
     *ptr1 = '\0';
-    return counterForEof;
+    return 0;
 }
 
