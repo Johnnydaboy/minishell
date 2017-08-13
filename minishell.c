@@ -24,7 +24,7 @@ typedef int(*redirectFunc)(char *ptrToFileName);
 /* Prototypes */
 void forkProcess (char **line, int origFd[], int newFd[], int doWait);
 int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);
-void redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd);
+int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd);
 int locateRedirect (char *expandBuffer, int startPos, int *whereIsRedirectMain, int *whereIsRedirectSub);
 int normalizeFilenameForRedirect (char *buffer);
 int findRedirectFilenameEnd (char *expandedBuffer, int startPos);
@@ -221,8 +221,9 @@ void forkProcess (char **line, int origFd[], int newFd[], int doWait)
     }
 }
 
-/* 0 = sucess
-   1 = error
+/* 
+    0 = sucess
+    1 = error
  */
 int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
 {
@@ -263,14 +264,18 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     redirectedFds[0] = origFds[0]; 
     redirectedFds[1] = origFds[1];
     redirectedFds[2] = origFds[2];  
-    redirection(expandBuffer, &redirectedFds[0], &redirectedFds[1], &redirectedFds[2]);
-    
+    int errorRedirect = redirection(expandBuffer, &redirectedFds[0], &redirectedFds[1], &redirectedFds[2]);
+    if (errorRedirect == -1)
+    {
+        dprintf(2,"No file detected\n");
+        return 1;
+    }
     if (successfulExpand != 0)
     {
         location = arg_parse(expandBuffer, &numOfArg);
         if (location == NULL)
         {
-            return 2;
+            return 1;
         }
     }        
     else if (successfulExpand == 0)
@@ -310,7 +315,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     return 0;
 }
 
-void redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
+int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
 {
     int whereIsRedirectMain = 0; // first character of redirection symbol
     int whereIsRedirectSub; // last character of redirection symbol
@@ -343,9 +348,19 @@ void redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
         {
             *err_fd = openFile(&expandedBuffer[whereIsRedirectSub + 1], O_APPEND | O_WRONLY | O_CREAT);
         }
+        
         setAllCharsInRange (expandedBuffer, whereIsRedirectMain, endOfFilenamePos, ' ');
         expandedBuffer[endOfFilenamePos] = tempChar;
     }
+    if (*out_fd == -1 || *in_fd == -1 || *err_fd == -1)
+    {
+        perror("open");
+    }
+    else if (*out_fd == -2 || *in_fd == -2 || *err_fd == -2)
+    {
+        return -1;
+    }
+    return 0;
 }
 
 void setAllCharsInRange (char *expandedBuffer, int start, int end, char c)
@@ -397,19 +412,19 @@ int locateRedirect (char *expandedBuffer, int startPos, int *whereIsRedirectMain
         {
             if (counter != 0 && expandedBuffer[counter - 1] == '2')
             {
-                // case 5 "2>>"
-                if (expandedBuffer[counter + 1] == '>')
-                {
-                    *whereIsRedirectMain = counter -1;
-                    *whereIsRedirectSub = counter + 1;
-                    return 5;
-                }
                 // case 4 "2>"
-                else
+                if (counter - 1 == 0)
                 {
                     *whereIsRedirectMain = counter - 1;
                     *whereIsRedirectSub = counter;
                     return 4;
+                }
+                // case 5 "2>>"
+                else if (expandedBuffer[counter + 1] == '>' && expandedBuffer[counter - 2] == ' ')
+                {
+                    *whereIsRedirectMain = counter - 2;
+                    *whereIsRedirectSub = counter + 1;
+                    return 5;
                 }
             }
             else 
@@ -462,11 +477,11 @@ int findRedirectFilenameEnd (char *expandedBuffer, int startPos)
 
 int openFile (char *filename, int FLAGS)
 {
-    int openFd = open(filename, FLAGS, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    if(openFd == -1)
+    if (*filename == '\0')
     {
-        perror("open");
+        return -2;
     }
+    int openFd = open(filename, FLAGS, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     return openFd;
 }
 
