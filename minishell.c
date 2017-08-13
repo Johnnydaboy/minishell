@@ -256,6 +256,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     }
     // Running arg_parse in order to return the arguments in a seperated string array format
 
+//new function starting here
     int origFds[3];
     origFds[0] = fd[0];
     origFds[1] = fd[1];
