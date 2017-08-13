@@ -436,22 +436,21 @@ int locateRedirect (char *expandedBuffer, int startPos, int *whereIsRedirectMain
 }
 
 /*
- 3 cases where redirect filename ends:
- 1: we encounter a space
- 2: we encounter '\0'
- 3: we encounter another redirect operator
- 4: filename is in quotes
+ 2 cases where redirect filename ends:
+ 1: we encounter '\0'
+ 2: we encounter another redirect operator
+ 
+ Returns either:
+ The location of the start of the next redirection operator or the location of the '\0' (potential end of filename, 
+ the actual filename may be shorter - computed later)
 
- Returns:
- 1 if we successfully found a filename
- 0 if unsuccessful (i.e. missing quote in filename)
 */
 int findRedirectFilenameEnd (char *expandedBuffer, int startPos)
 {
     int redirStart, redirEnd;
     if (locateRedirect(expandedBuffer, startPos, &redirStart, &redirEnd) != -1)
     {
-        return redirEnd;
+        return redirStart;
     }
 
     while (expandedBuffer[startPos] != '\0')
