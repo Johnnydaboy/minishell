@@ -26,7 +26,7 @@ void forkProcess (char **line, int origFd[], int newFd[], int doWait);
 int processLine (char *buffer, char *expandBuffer, int fd[], int doWait);
 int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd);
 int locateRedirect (char *expandBuffer, int startPos, int *whereIsRedirectMain, int *whereIsRedirectSub);
-int normalizeFilenameForRedirect (char *buffer);
+int normalizeFilenameForRedirect (char *buffer, char *tempChar);
 int findRedirectFilenameEnd (char *expandedBuffer, int startPos);
 int openFile (char *filename, int FLAGS);
 bool normalizedString = false;
@@ -327,14 +327,17 @@ int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
         int endOfFilenamePos = findRedirectFilenameEnd(expandedBuffer, whereIsRedirectSub + 1);
         char tempChar = expandedBuffer[endOfFilenamePos];
         expandedBuffer[endOfFilenamePos] = '\0';
-        int endOfFileToSpace = normalizeFilenameForRedirect(&expandedBuffer[whereIsRedirectSub + 1]);
+        char tempChar2;
+        bool changed = false;
+        int endOfFileToSpace = normalizeFilenameForRedirect(&expandedBuffer[whereIsRedirectSub + 1], &tempChar2);
         if (endOfFileToSpace != 0)
         {
+            changed = true;
             expandedBuffer[endOfFilenamePos] = tempChar;
             endOfFilenamePos = whereIsRedirectSub + 1 + endOfFileToSpace;
-            tempChar = expandedBuffer[endOfFilenamePos]; 
+            tempChar = tempChar2;
+            expandedBuffer[endOfFilenamePos] = '\0'; 
         }
-
         if (whatOperation == 1)
         {
             *out_fd = openFile(&expandedBuffer[whereIsRedirectSub + 1], O_CREAT | O_WRONLY | O_TRUNC);
@@ -357,7 +360,14 @@ int redirection (char *expandedBuffer, int *in_fd, int *out_fd, int *err_fd)
         }
         
         setAllCharsInRange (expandedBuffer, whereIsRedirectMain, endOfFilenamePos, ' ');
-        expandedBuffer[endOfFilenamePos] = tempChar;
+        if (changed == true)
+        {
+            expandedBuffer[endOfFilenamePos] = ' ';
+        }
+        else
+        {
+            expandedBuffer[endOfFilenamePos] = tempChar;
+        }
         normalizedString = true;
     }
     normalizedString = false;
@@ -424,7 +434,7 @@ int locateRedirect (char *expandedBuffer, int startPos, int *whereIsRedirectMain
                 // case 5 " 2>>"
                 if (expandedBuffer[counter + 1] == '>')
                 {
-                    *whereIsRedirectMain = counter - 2;
+                    *whereIsRedirectMain = counter - 1;
                     *whereIsRedirectSub = counter + 1;
                     return 5;
                 }
@@ -436,9 +446,9 @@ int locateRedirect (char *expandedBuffer, int startPos, int *whereIsRedirectMain
             else if (counter == 1 && expandedBuffer[counter - 1] == '2')
             {
                 // case 5 "2>>"
-                if (expandedBuffer[counter + 1] == '2')
+                if (expandedBuffer[counter + 1] == '>')
                 {
-                    *whereIsRedirectMain = counter - 2;
+                    *whereIsRedirectMain = counter - 1;
                     *whereIsRedirectSub = counter + 1;
                     return 5;
                 }
@@ -505,7 +515,7 @@ int openFile (char *filename, int FLAGS)
     return openFd;
 }
 
-int normalizeFilenameForRedirect (char *buffer)
+int normalizeFilenameForRedirect (char *buffer, char *tempChar)
 {
     int counterForEof = 0;
     bool inQuote = false;
@@ -528,6 +538,7 @@ int normalizeFilenameForRedirect (char *buffer)
         {
             //*ptr2 = '\0'
             //ptr1++;
+            *tempChar = *ptr1;
             *ptr1 = '\0';
             return counterForEof;
             break;
