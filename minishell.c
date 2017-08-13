@@ -410,22 +410,33 @@ int locateRedirect (char *expandedBuffer, int startPos, int *whereIsRedirectMain
         }
         else if (expandedBuffer[counter] == '>')
         {
-            if (counter != 0 && expandedBuffer[counter - 1] == '2')
+            if (counter >= 2 && expandedBuffer[counter - 1] == '2' && expandedBuffer[counter - 2] == ' ')
             {
-                // case 4 "2>"
-                if (counter - 1 == 0)
-                {
-                    *whereIsRedirectMain = counter - 1;
-                    *whereIsRedirectSub = counter;
-                    return 4;
-                }
-                // case 5 "2>>"
-                else if (expandedBuffer[counter + 1] == '>' && expandedBuffer[counter - 2] == ' ')
+                // case 5 " 2>>"
+                if (expandedBuffer[counter + 1] == '>')
                 {
                     *whereIsRedirectMain = counter - 2;
                     *whereIsRedirectSub = counter + 1;
                     return 5;
                 }
+                // case 4 " 2>"
+                *whereIsRedirectMain = counter - 2;
+                *whereIsRedirectSub = counter;
+                return 4;
+            }
+            else if (counter == 1 && expandedBuffer[counter - 1] == '2')
+            {
+                // case 5 "2>>"
+                if (expandedBuffer[counter + 1] == '2')
+                {
+                    *whereIsRedirectMain = counter - 2;
+                    *whereIsRedirectSub = counter + 1;
+                    return 5;
+                }
+                // case 4 "2>"
+                *whereIsRedirectMain = counter - 1;
+                *whereIsRedirectSub = counter;
+                return 4;
             }
             else 
             {
