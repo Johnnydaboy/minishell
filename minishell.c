@@ -29,6 +29,9 @@ int locateRedirect (char *expandBuffer, int startPos, int *whereIsRedirectMain, 
 int normalizeFilenameForRedirect (char *buffer, char *tempChar);
 int findRedirectFilenameEnd (char *expandedBuffer, int startPos);
 int openFile (char *filename, int FLAGS);
+
+int redirectionalArgumentCommandProcessing(int successfulExpand, int doWait, char *expandBuffer, int fd[]);
+int locatePipe (char *expandedBuffer);
 bool normalizedString = false;
 
 void setAllCharsInRange (char *expandedBuffer, int start, int end, char c);
@@ -45,6 +48,7 @@ void sigIntHandler (int signum)
     {
         kill(killChild, SIGINT);
     }
+    //waitpid on -1 (everything) using the WNOHANG constant
 }
 
 /* Shell main */
@@ -160,7 +164,6 @@ int main(int mainargc, char **mainargv)
 //65536
 // Runs a library program if a built in command wasn't called
 
-//break it up into int fd[0] and fd[1] and send it through
 void forkProcess (char **line, int origFd[], int newFd[], int doWait)
 {
     pid_t  cpid;
@@ -228,8 +231,6 @@ void forkProcess (char **line, int origFd[], int newFd[], int doWait)
  */
 int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
 {
-    char ** location;
-    int numOfArg = 0;
     int checkForPoundSign = 0;
     bool inQuote = false;
     while (buffer[checkForPoundSign] != '\0')
@@ -257,63 +258,12 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     // Running arg_parse in order to return the arguments in a seperated string array format
 
 //new function starting here
-    int origFds[3];
-    origFds[0] = fd[0];
-    origFds[1] = fd[1];
-    origFds[2] = fileno(stderr);
+    int ifSuccess = redirectionalArgumentCommandProcessing(successfulExpand, doWait, expandBuffer, fd);
 
-    int redirectedFds[3];
-    redirectedFds[0] = origFds[0]; 
-    redirectedFds[1] = origFds[1];
-    redirectedFds[2] = origFds[2];  
-    int errorRedirect = redirection(expandBuffer, &redirectedFds[0], &redirectedFds[1], &redirectedFds[2]);
-    if (errorRedirect == -1)
-    {
-        dprintf(2,"No file detected\n");
-        return 1;
-    }
-    if (successfulExpand != 0)
-    {
-        location = arg_parse(expandBuffer, &numOfArg);
-        if (location == NULL)
-        {
-            return 1;
-        }
-    }        
-    else if (successfulExpand == 0)
+    if (ifSuccess == 1)
     {
         return 1;
     }
-    bool runforkPro;
-    
-    /* Run it ... */
-    // check to make sure that the process won't run if nothing is given to arg_parse
-    if (numOfArg != 1)
-    {
-        runforkPro = builtInFunc(location, numOfArg, redirectedFds);
-        if (runforkPro == true)
-        {
-            doWait = 0;
-        }
-    }
-    else
-    {
-        runforkPro = false;
-    }
-    
-    // This checks to make sure if there are no built in functions then it will call the library
-    // Also checks to make sure processline won't run if nothing was given to arg_parse
-    if (numOfArg != 1)
-    {
-        // This makes sure that processline doesn't run if a built in function was called
-        if (runforkPro == false)
-        {
-            forkProcess (location, origFds, redirectedFds, doWait);
-        }
-    }
-    
-    // Frees up the malloc'ed location by arg_parse
-    free(location);
     return 0;
 }
 
@@ -563,3 +513,89 @@ int normalizeFilenameForRedirect (char *buffer, char *tempChar)
     return 0;
 }
 
+/*
+int locatePipe (char *expandedBuffer)
+{
+    int locationOfExpandedBuffer = 0;
+    while (expandedBuffer != '')
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+int redirectionalArgumentCommandProcessing(int successfulExpand, int doWait, char *expandBuffer, int fd[])
+{
+    char ** location;
+    int numOfArg = 0;
+    int origFds[3];
+    origFds[0] = fd[0];
+    origFds[1] = fd[1];
+    origFds[2] = fileno(stderr);
+
+    int redirectedFds[3];
+    redirectedFds[0] = origFds[0]; 
+    redirectedFds[1] = origFds[1];
+    redirectedFds[2] = origFds[2];  
+    int errorRedirect = redirection(expandBuffer, &redirectedFds[0], &redirectedFds[1], &redirectedFds[2]);
+    if (errorRedirect == -1)
+    {
+        dprintf(2,"No file detected\n");
+        return 1;
+    }
+    if (successfulExpand != 0)
+    {
+        location = arg_parse(expandBuffer, &numOfArg);
+        if (location == NULL)
+        {
+            return 1;
+        }
+    }        
+    else if (successfulExpand == 0)
+    {
+        return 1;
+    }
+    bool runforkPro;
+    
+    /* Run it ... */
+    // check to make sure that the process won't run if nothing is given to arg_parse
+    if (numOfArg != 1)
+    {
+        runforkPro = builtInFunc(location, numOfArg, redirectedFds);
+        if (runforkPro == true)
+        {
+            doWait = 0;
+        }
+    }
+    else
+    {
+        runforkPro = false;
+    }
+    
+    // This checks to make sure if there are no built in functions then it will call the library
+    // Also checks to make sure processline won't run if nothing was given to arg_parse
+    if (numOfArg != 1)
+    {
+        // This makes sure that processline doesn't run if a built in function was called
+        if (runforkPro == false)
+        {
+            forkProcess (location, origFds, redirectedFds, doWait);
+        }
+    }
+    
+    // Frees up the malloc'ed location by arg_parse
+    free(location);
+    return 0;
+}
+
+
+
+    
