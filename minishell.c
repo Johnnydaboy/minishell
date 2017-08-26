@@ -259,9 +259,10 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     // Running arg_parse in order to return the arguments in a seperated string array format
 
 //new function starting here
-    int ifSuccess = proLineSimple(successfulExpand, doWait, expandBuffer, fd);
+    int ifSuccess = locatePipe(expandBuffer, fd, successfulExpand, doWait);
+    //int ifSuccess = proLineSimple(successfulExpand, doWait, expandBuffer, fd);
 
-    if (ifSuccess == 1)
+    if (ifSuccess == -1)
     {
         return 1;
     }
@@ -522,41 +523,40 @@ int locatePipe (char *expandBuffer, int fd[], int successfulExpand, int doWait)
     int fdtemp = dup (fd[0]);
     while (expandBuffer[locationOfExpandedBuffer] != '\0')
     {
+        printf("%c\n", expandBuffer[locationOfExpandedBuffer]);
         if(expandBuffer[locationOfExpandedBuffer] == '|')
         {
-            int closeBuff;
             howManyPipe++;
             expandBuffer[locationOfExpandedBuffer] = '\0';
             int fileD[2];
-            if (pipe(fd) == -1)
+            if (pipe(fileD) == -1)
             {
                 perror("Error: pipe");
+                return -1;
             }
-            //if ()
-            proLineSimple(successfulExpand, doWait, expandBuffer, fileD);
+            printf("%s\n", expandBuffer);
+            if (proLineSimple(successfulExpand, doWait, expandBuffer, fileD) == 1)
+            {
+                dprintf(2,"Error pipeline\n");
+                return -1;
+            }
+            close(fdtemp);
+            close(fileD[1]);
+            fdtemp = fileD[0];
+            setAllCharsInRange(expandBuffer, 0, locationOfExpandedBuffer, ' ');
         }
+        locationOfExpandedBuffer++;
     }
     if (howManyPipe == 0)
     {
-        if(proLineSimple(successfulExpand, doWait, expandBuffer, fd) == 0)
+        if(proLineSimple(successfulExpand, doWait, expandBuffer, fd) == 1)
         {
+            dprintf(2,"Error pipeline\n");
             return -1;
         }
     }
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 int proLineSimple(int successfulExpand, int doWait, char *expandBuffer, int fd[])
 {
