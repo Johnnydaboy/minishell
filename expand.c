@@ -694,20 +694,14 @@ int commandExpansion (char * origBuffLoc, char * newBuff, int * counter, int * c
             }
             close(fileDescriptors[1]);
             int closeBuffTotal = 0;
-            bool readAll = false;
             int closeBuff;
             char * ptrToecmd = ecmdExpandBuf;
-            while (readAll == false)
+            while (closeBuff = read(fileDescriptors[0], ptrToecmd, sizeForBuf), closeBuff != 0)
             {
-                closeBuff = read(fileDescriptors[0], ptrToecmd, sizeForBuf);
-                if (closeBuff == 0)
-                {
-                    wait(NULL);
-                    readAll = true;
-                }
                 closeBuffTotal = closeBuffTotal + closeBuff;
                 ptrToecmd = ptrToecmd + closeBuff;
             }
+            wait(NULL);
             ecmdExpandBuf[closeBuffTotal] = '\0';
             close(fileDescriptors[0]);
             

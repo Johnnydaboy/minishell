@@ -30,8 +30,8 @@ int normalizeFilenameForRedirect (char *buffer, char *tempChar);
 int findRedirectFilenameEnd (char *expandedBuffer, int startPos);
 int openFile (char *filename, int FLAGS);
 
-int redirectionalArgumentCommandProcessing(int successfulExpand, int doWait, char *expandBuffer, int fd[]);
-int locatePipe (char *expandedBuffer);
+int proLineSimple(int successfulExpand, int doWait, char *expandBuffer, int fd[]);
+int locatePipe (char *expandedBuffer, int fd[], int successfulExpand, int doWait);
 bool normalizedString = false;
 
 void setAllCharsInRange (char *expandedBuffer, int start, int end, char c);
@@ -54,10 +54,10 @@ void sigIntHandler (int signum)
 /* Shell main */
 int main(int mainargc, char **mainargv)
 {
-    //char   buffer [LINELEN];
-    char* buffer = (char*)malloc(sizeof(char) * LINELEN);
-    //char   expandBuffer [LINELEN];
-    char* expandBuffer = (char*)malloc(sizeof(char) * LINELEN);
+    char   buffer [LINELEN];
+    //char* buffer = (char*)malloc(sizeof(char) * LINELEN);
+    char   expandBuffer [LINELEN];
+    //char* expandBuffer = (char*)malloc(sizeof(char) * LINELEN);
     int    len;
     FILE * fileopener; 
     int countercc;
@@ -249,6 +249,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
         }
         checkForPoundSign++;
     }
+    
     int successfulExpand = expand(buffer, expandBuffer, LINELEN);
     //printf("se%d\n", successfulExpand);
     if (successfulExpand == -1)
@@ -258,7 +259,7 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     // Running arg_parse in order to return the arguments in a seperated string array format
 
 //new function starting here
-    int ifSuccess = redirectionalArgumentCommandProcessing(successfulExpand, doWait, expandBuffer, fd);
+    int ifSuccess = proLineSimple(successfulExpand, doWait, expandBuffer, fd);
 
     if (ifSuccess == 1)
     {
@@ -513,13 +514,37 @@ int normalizeFilenameForRedirect (char *buffer, char *tempChar)
     return 0;
 }
 
-/*
-int locatePipe (char *expandedBuffer)
+
+int locatePipe (char *expandBuffer, int fd[], int successfulExpand, int doWait)
 {
     int locationOfExpandedBuffer = 0;
-    while (expandedBuffer != '')
+    int howManyPipe = 0;
+    int fdtemp = dup (fd[0]);
+    while (expandBuffer[locationOfExpandedBuffer] != '\0')
+    {
+        if(expandBuffer[locationOfExpandedBuffer] == '|')
+        {
+            int closeBuff;
+            howManyPipe++;
+            expandBuffer[locationOfExpandedBuffer] = '\0';
+            int fileD[2];
+            if (pipe(fd) == -1)
+            {
+                perror("Error: pipe");
+            }
+            //if ()
+            proLineSimple(successfulExpand, doWait, expandBuffer, fileD);
+        }
+    }
+    if (howManyPipe == 0)
+    {
+        if(proLineSimple(successfulExpand, doWait, expandBuffer, fd) == 0)
+        {
+            return -1;
+        }
+    }
+    return 0;
 }
-*/
 
 
 
@@ -532,7 +557,8 @@ int locatePipe (char *expandedBuffer)
 
 
 
-int redirectionalArgumentCommandProcessing(int successfulExpand, int doWait, char *expandBuffer, int fd[])
+
+int proLineSimple(int successfulExpand, int doWait, char *expandBuffer, int fd[])
 {
     char ** location;
     int numOfArg = 0;
@@ -544,7 +570,7 @@ int redirectionalArgumentCommandProcessing(int successfulExpand, int doWait, cha
     int redirectedFds[3];
     redirectedFds[0] = origFds[0]; 
     redirectedFds[1] = origFds[1];
-    redirectedFds[2] = origFds[2];  
+    redirectedFds[2] = origFds[2];
     int errorRedirect = redirection(expandBuffer, &redirectedFds[0], &redirectedFds[1], &redirectedFds[2]);
     if (errorRedirect == -1)
     {
