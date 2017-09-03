@@ -30,8 +30,8 @@ int normalizeFilenameForRedirect (char *buffer, char *tempChar);
 int findRedirectFilenameEnd (char *expandedBuffer, int startPos);
 int openFile (char *filename, int FLAGS);
 
-int proLineSimple(int successfulExpand, int doWait, char *expandBuffer, int fd[]);
-int locatePipe (char *expandedBuffer, int fd[], int successfulExpand, int doWait);
+int proLineSimple(int doWait, char *expandBuffer, int fd[], int fdtemp);
+int locatePipe (char *expandedBuffer, int fd[], int doWait);
 bool normalizedString = false;
 
 void setAllCharsInRange (char *expandedBuffer, int start, int end, char c);
@@ -223,6 +223,7 @@ void forkProcess (char **line, int origFd[], int newFd[], int doWait)
         exitStatus = WEXITSTATUS(status);
         //printf("Exit status was %d\n", exitStatus);
     }
+    // Close newFds in parent too (not just on error in fork)
 }
 
 /* 
@@ -252,14 +253,14 @@ int processLine (char *buffer, char *expandBuffer, int fd[], int doWait)
     
     int successfulExpand = expand(buffer, expandBuffer, LINELEN);
     //printf("se%d\n", successfulExpand);
-    if (successfulExpand == -1)
+    if (successfulExpand == -1 || successfulExpand == 0)
     {
         return 1;
     }
     // Running arg_parse in order to return the arguments in a seperated string array format
 
 //new function starting here
-    int ifSuccess = locatePipe(expandBuffer, fd, successfulExpand, doWait);
+    int ifSuccess = locatePipe(expandBuffer, fd, doWait);
     //int ifSuccess = proLineSimple(successfulExpand, doWait, expandBuffer, fd);
 
     if (ifSuccess == -1)
@@ -516,14 +517,14 @@ int normalizeFilenameForRedirect (char *buffer, char *tempChar)
 }
 
 
-int locatePipe (char *expandBuffer, int fd[], int successfulExpand, int doWait)
+int locatePipe (char *expandBuffer, int fd[], int doWait)
 {
     int locationOfExpandedBuffer = 0;
     int howManyPipe = 0;
     int fdtemp = dup (fd[0]);
     while (expandBuffer[locationOfExpandedBuffer] != '\0')
     {
-        printf("%c\n", expandBuffer[locationOfExpandedBuffer]);
+        //printf("%c\n", expandBuffer[locationOfExpandedBuffer]);
         if(expandBuffer[locationOfExpandedBuffer] == '|')
         {
             howManyPipe++;
@@ -534,8 +535,8 @@ int locatePipe (char *expandBuffer, int fd[], int successfulExpand, int doWait)
                 perror("Error: pipe");
                 return -1;
             }
-            printf("%s\n", expandBuffer);
-            if (proLineSimple(successfulExpand, doWait, expandBuffer, fileD) == 1)
+            //printf("%s\n", expandBuffer);
+            if (proLineSimple(doWait, expandBuffer, fileD, fdtemp) == 1)
             {
                 dprintf(2,"Error pipeline\n");
                 return -1;
@@ -543,13 +544,14 @@ int locatePipe (char *expandBuffer, int fd[], int successfulExpand, int doWait)
             close(fdtemp);
             close(fileD[1]);
             fdtemp = fileD[0];
-            setAllCharsInRange(expandBuffer, 0, locationOfExpandedBuffer, ' ');
+            setAllCharsInRange( expandBuffer, 0, locationOfExpandedBuffer, ' ');
         }
         locationOfExpandedBuffer++;
     }
     if (howManyPipe == 0)
     {
-        if(proLineSimple(successfulExpand, doWait, expandBuffer, fd) == 1)
+        int fdtemp1 = -2;
+        if(proLineSimple( doWait, expandBuffer, fd, fdtemp1) == 1)
         {
             dprintf(2,"Error pipeline\n");
             return -1;
@@ -558,12 +560,19 @@ int locatePipe (char *expandBuffer, int fd[], int successfulExpand, int doWait)
     return 0;
 }
 
-int proLineSimple(int successfulExpand, int doWait, char *expandBuffer, int fd[])
+int proLineSimple( int doWait, char *expandBuffer, int fd[], int fdtemp)
 {
     char ** location;
     int numOfArg = 0;
     int origFds[3];
-    origFds[0] = fd[0];
+    if (fdtemp != -2)
+    {
+        origFds[0] = fdtemp;
+    }
+    else
+    {
+        origFds[0] = fd[0];
+    }
     origFds[1] = fd[1];
     origFds[2] = fileno(stderr);
 
@@ -577,20 +586,28 @@ int proLineSimple(int successfulExpand, int doWait, char *expandBuffer, int fd[]
         dprintf(2,"No file detected\n");
         return 1;
     }
-    if (successfulExpand != 0)
-    {
         location = arg_parse(expandBuffer, &numOfArg);
         if (location == NULL)
         {
             return 1;
         }
-    }        
-    else if (successfulExpand == 0)
-    {
-        return 1;
-    }
+
     bool runforkPro;
     
+    /* Run it ... */
+    // check to make sure that the process won't run if nothing is given to arg_parse
+    if (numOfArg != 1)
+    {
+        runforkPro = builtInFunc(location, numOfArg, redirectedFds);
+        if (runforkPro == true)
+        {
+            doWait = 0;
+        }
+    }
+    else
+    {
+        runforkPro = false;
+    }
     /* Run it ... */
     // check to make sure that the process won't run if nothing is given to arg_parse
     if (numOfArg != 1)
@@ -624,4 +641,3 @@ int proLineSimple(int successfulExpand, int doWait, char *expandBuffer, int fd[]
 
 
 
-    
