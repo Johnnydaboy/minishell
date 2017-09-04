@@ -550,12 +550,12 @@ int locatePipe (char *expandBuffer, int fd[], int doWait)
     }
     if (howManyPipe == 0)
     {
-        int fdtemp1 = -2;
-        if(proLineSimple( doWait, expandBuffer, fd, fdtemp1) == 1)
-        {
-            dprintf(2,"Error pipeline\n");
-            return -1;
-        }
+        fdtemp = -2;
+    }
+    if(proLineSimple( doWait, expandBuffer, fd, fdtemp) == 1)
+    {
+        dprintf(2,"Error pipeline\n");
+        return -1;
     }
     return 0;
 }
